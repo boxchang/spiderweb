@@ -4,7 +4,7 @@ import time
 from database import vnedc_database
 from factory.factory import MonitorFactory
 from models import DeviceInfo, DeviceType
-
+from wecom.send_message import send_message, prepare_msg
 
 class MonitorThread(threading.Thread):
     def __init__(self, monitor, frequency):
@@ -40,11 +40,12 @@ def get_device_list():
     return device_types
 
 
-
 def main():
     device_type_list = get_device_list()
 
     threads = []
+
+    # Create and start threads for each device type
     for device_type in device_type_list:
         monitor = MonitorFactory.create_monitor(device_type.type_name)
         job_frequency = device_type.job_frequency
@@ -52,10 +53,17 @@ def main():
         threads.append(thread)
         thread.start()
 
-    # Example: Stop all threads after some time
-    # time.sleep(10)
-    # for thread in threads:
-    #     thread.stop()
+    # Let threads run for 10 seconds
+    time.sleep(20)
+
+    # Stop all threads after 10 seconds
+    for thread in threads:
+        thread.stop()
+
+    # Call send_message after stopping the threads
+    # code, msg = prepare_msg()
+    # send_message(code, msg)
+
 
 if __name__ == "__main__":
     main()
