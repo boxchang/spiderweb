@@ -12,11 +12,10 @@ class CountingDeviceMonitor(Monitor):
         for device in devices:
             status = self.get_device_status(scada_db, device)
             self.update_device_status(vnedc_db, device.id, status)
-            # print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if str(status) == 'S01' else 'FAIL'}")
+            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if str(status) == 'S01' else 'FAIL'}")
 
     def stop(self):
-        # print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
-        return
+        print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
 
     def update_device_status(self, db, id, status_id):
         sql = f"""
@@ -78,11 +77,10 @@ class AOIDeviceMonitor(Monitor):
         for device in devices:
             status = self.get_device_status(scada_db, device)
             self.update_device_status(vnedc_db, device.id, status)
-            # print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if status == 'S01' else 'FAIL'}")
+            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if status == 'S01' else 'FAIL'}")
 
     def stop(self):
-        # print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
-        return
+        print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
 
     def update_device_status(self, db, id, status_id):
         sql = f"""
@@ -125,11 +123,10 @@ class ScadaPLCMonitor(Monitor):
         for device in devices:
             status = self.get_device_status(scada_db, device)
             self.update_device_status(vnedc_db, device.id, status)
-            # print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if status == 'S01' else 'FAIL'}")
+            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if status == 'S01' else 'FAIL'}")
 
     def stop(self):
-        # print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
-        return
+        print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
 
     def update_device_status(self, db, id, status_id):
         sql = f"""
