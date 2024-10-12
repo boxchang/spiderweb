@@ -16,7 +16,7 @@ def prepare_msg():
     send = 0
     if len(rows) > 0:
         message_list = [f"{row['type_name']}-{row['device_name']}" for row in rows]
-        message = '+\n'.join(message_list)
+        message = '\n+'.join(message_list)
         send = 1
     return send, message
 
@@ -25,6 +25,7 @@ def send_message(send_code, msg):
         pass
     elif send_code == 1:
         print('Send message')
+        print(msg)
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         wecom_file = os.path.join(path, "static", "wecom", "dt_wecom_key.config")
         url = ''  # Add Wecom GD_MES group key
