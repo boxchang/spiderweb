@@ -2,6 +2,9 @@ from database import vnedc_database, scada_database
 from monitor import Monitor
 from datetime import datetime, timedelta
 
+from utils import Log
+
+
 class MesDataStatusMonitor(Monitor):
     result = {"OKAY": 'S01', "FAIL": 'E01'}
 
@@ -10,7 +13,7 @@ class MesDataStatusMonitor(Monitor):
         scada_db = scada_database()
         devices = self.get_device_list(vnedc_db, self.device_type)
         for device in devices:
-            status = self.get_device_status(scada_db, device)
+            status = self.get_device_status(scada_db, vnedc_db, device)
             self.update_device_status(vnedc_db, device.id, status)
             print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if str(status) == 'S01' else 'FAIL'}")
 
@@ -23,7 +26,7 @@ class MesDataStatusMonitor(Monitor):
         """
         db.execute_sql(sql)
 
-    def get_device_status(self, db, device):
+    def get_device_status(self, scada_db, vnedc_db, device):
 
         device_name = device.device_name
 
@@ -40,16 +43,14 @@ class MesDataStatusMonitor(Monitor):
                     FROM [PMG_DEVICE].[dbo].[WeightDeviceData]
                     where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -1, GETDATE()) AND CreationDate <= GETDATE()
                     """
-            rows = db.select_sql_dict(sql)
+            rows = scada_db.select_sql_dict(sql)
             if len(rows) == 0:
                 result = self.result["OKAY"]
             else:
                 comment = [row['RuncardId'] for row in rows]
                 result = self.result["FAIL"]
-                sql = f"""
-                    update [VNEDC].[dbo].[spiderweb_check_log] set comment = '{comment}', update_at = GETDATE() where id = {id} 
-                """
-                db.execute_sql(sql)
+                msg = ', '.join(comment)
+                Log.write(vnedc_db, device.device_type, msg, self.result["FAIL"])
         except:
             result = self.result["FAIL"]
         return result

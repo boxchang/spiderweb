@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from database import vnedc_database, scada_database
 from monitor import Monitor
+from utils import Log
+
 
 class CountingDeviceMonitor(Monitor):
     result = {"OKAY": 'S01', "FAIL": 'E01'}
@@ -10,7 +12,7 @@ class CountingDeviceMonitor(Monitor):
         scada_db = scada_database()
         devices = self.get_device_list(vnedc_db, self.device_type)
         for device in devices:
-            status = self.get_device_status(scada_db, device)
+            status = self.get_device_status(scada_db, vnedc_db, device)
             self.update_device_status(vnedc_db, device.id, status)
             print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {'OKAY' if str(status) == 'S01' else 'FAIL'}")
 
@@ -23,9 +25,10 @@ class CountingDeviceMonitor(Monitor):
            """
         db.execute_sql(sql)
 
-    def get_device_status(self, db, device):
-
+    def get_device_status(self, scada_db, vnedc_db, device):
+        msg = ""
         device_name = device.device_name
+
         sql = f"""
                    SELECT last_time
                        FROM (
@@ -45,7 +48,7 @@ class CountingDeviceMonitor(Monitor):
                        ) AS LatestNonNullRow;
            """
         try:
-            rows = db.select_sql_dict(sql)
+            rows = scada_db.select_sql_dict(sql)
             # print(rows)
             if len(rows) == 2:
                 given_time = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
@@ -53,17 +56,23 @@ class CountingDeviceMonitor(Monitor):
                 time_difference = current_time - given_time
                 if time_difference > timedelta(minutes=30):
                     result = self.result["FAIL"]
+                    msg = f"{device_name} last time is {given_time} already over 30 mins"
                 else:
                     last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                     last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                     if last_time - last_null > timedelta(minutes=30):
                         result = self.result["FAIL"]
+                        msg = f"{device_name} last time is {last_null} already over 30 mins"
                     else:
                         result = self.result["OKAY"]
             else:
                 result = self.result["FAIL"]
+                msg = f"{device_name} no any data"
         except:
             result = self.result["FAIL"]
+        finally:
+            if result == self.result["FAIL"]:
+                Log.write(vnedc_db, device.device_type, msg, self.result["FAIL"])
         return result
 
 
