@@ -1,6 +1,10 @@
+import sys
+import os
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 import threading
 import time
-
 from database import vnedc_database
 from factory.factory import MonitorFactory
 from models import DeviceInfo, DeviceType
