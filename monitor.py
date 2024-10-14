@@ -19,7 +19,7 @@ class Monitor(ABC):
     def get_device_list(self, db, device_type):
 
         sql = f"""SELECT c.id, mt.type_name monitor_type, dt.type_name device_type, device_name, ip_address, port,
-                    plant, enable, [desc] status, status_update_at,comment,job_start_time, dt.job_frequency, c.update_at,c.update_by_id update_by, c.device_group
+                    plant, enable, [desc] status, status_update_at,comment, c.update_at,c.update_by_id update_by, c.device_group
                     FROM [VNEDC].[dbo].[spiderweb_monitor_device_list] c
                     JOIN [VNEDC].[dbo].[spiderweb_monitor_type] mt on c.monitor_type_id = mt.id
                     JOIN [VNEDC].[dbo].[spiderweb_device_type] dt on c.device_type_id = dt.id
@@ -31,7 +31,6 @@ class Monitor(ABC):
             DeviceInfo(id=row['id'], monitor_type=row['monitor_type'], device_type=row['device_type'],  device_name=row['device_name'],
                        ip_address=row['ip_address'], port=row['port'], plant=row['plant'], enable=row['enable'],
                        status=row['status'], status_update_at=row['status_update_at'], comment=row['comment'],
-                       job_start_time=row['job_start_time'],
-                       job_frequency=row['job_frequency'], update_at=row['update_at'], update_by=row['update_by'])
+                       update_at=row['update_at'], update_by=row['update_by'])
             for row in rows]
         return devices
