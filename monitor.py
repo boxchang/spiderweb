@@ -23,7 +23,8 @@ class Monitor(ABC):
                     FROM [VNEDC].[dbo].[spiderweb_monitor_device_list] c
                     JOIN [VNEDC].[dbo].[spiderweb_monitor_type] mt on c.monitor_type_id = mt.id
                     JOIN [VNEDC].[dbo].[spiderweb_device_type] dt on c.device_type_id = dt.id
-                    JOIN [VNEDC].[dbo].[spiderweb_monitor_status] s on c.status_id = s.status_code and dt.type_name='{device_type}'"""
+                    JOIN [VNEDC].[dbo].[spiderweb_monitor_status] s on c.status_id = s.status_code and dt.type_name='{device_type}'
+                    WHERE enable = 'Y'"""
         rows = db.select_sql_dict(sql)
 
         devices = [

@@ -53,17 +53,5 @@ def main():
         threads.append(thread)
         thread.start()
 
-    # Let threads run for 10 seconds
-    time.sleep(20)
-
-    # Stop all threads after 10 seconds
-    for thread in threads:
-        thread.stop()
-
-    # Call send_message after stopping the threads
-    # code, msg = prepare_msg()
-    # send_message(code, msg)
-
-
 if __name__ == "__main__":
     main()
