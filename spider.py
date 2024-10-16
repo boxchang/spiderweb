@@ -1,14 +1,17 @@
 import sys
 import os
+
+from factory.factory_equipment import CountingDeviceMonitor, AOIDeviceMonitor, ScadaPLCMonitor
+from factory.key_device import KeyDeviceMonitor
+from factory.mes_data_status import MesDataStatusMonitor
+from factory.wecom import WecomMonitor
+from utils import Utils
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 import threading
 import time
-from database import vnedc_database
-from factory.factory import MonitorFactory
-from models import DeviceInfo, DeviceType
-from wecom.send_message import send_message, prepare_msg
 
 class MonitorThread(threading.Thread):
     def __init__(self, monitor, frequency):
@@ -27,25 +30,26 @@ class MonitorThread(threading.Thread):
         self.monitor.stop()
         self._stop_event.set()
 
-def get_device_list():
-    db = vnedc_database()
-    sql = f"""SELECT [type_name]
-                  ,[job_frequency]
-                  ,[update_at]
-                  ,[update_by_id]
-              FROM [VNEDC].[dbo].[spiderweb_device_type]"""
-    rows = db.select_sql_dict(sql)
-
-    device_types = [
-        DeviceType(type_name=row['type_name'], job_frequency=row['job_frequency'], update_at=row['update_at'], update_by=row['update_by_id']) for
-        row in
-        rows]
-
-    return device_types
-
+class MonitorFactory:
+    @staticmethod
+    def create_monitor(device_type):
+        if device_type == "COUNTING DEVICE":
+            return CountingDeviceMonitor()
+        elif device_type == "AOI DEVICE":
+            return AOIDeviceMonitor()
+        elif device_type == "PLC SCADA":
+            return ScadaPLCMonitor()
+        elif device_type == 'MES JOB':
+            return MesDataStatusMonitor()
+        elif device_type == 'WECOM':
+            return WecomMonitor()
+        elif device_type == 'KEY_DEVICE':
+            return KeyDeviceMonitor()
+        else:
+            raise ValueError(f"Unknown device type: {device_type}")
 
 def main():
-    device_type_list = get_device_list()
+    device_type_list = Utils.get_device_type_list()
 
     threads = []
 

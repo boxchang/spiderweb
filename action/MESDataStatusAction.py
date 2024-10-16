@@ -1,0 +1,51 @@
+from datetime import datetime, timedelta
+
+
+class MESDataStatusAction():
+    vnedc_db = None
+    scada_db = None
+    status = None
+
+    def __init__(self, obj):
+        self.vnedc_db = obj.vnedc_db
+        self.scada_db = obj.scada_db
+        self.status = obj.status
+
+    # Check if there is no data for a long time
+    def CheckDataStatus(self, device):
+        device_name = device.device_name
+        msg = ""
+        status = "S01"
+
+        try:
+            if device_name == 'ThicknessDeviceData':
+                sql = f"""
+                            SELECT RunCardId, DeviceId UserId, Cdt data_time
+                            FROM [PMG_DEVICE].[dbo].[ThicknessDeviceData]
+                            WHERE Cdt >= DATEADD(HOUR, -1, GETDATE()) AND Cdt <= GETDATE() AND MES_STATUS = 'E'
+                            """
+                rows = self.scada_db.select_sql_dict(sql)
+
+                if len(rows) != 0:
+                    comment = [row['RuncardId'] for row in rows]
+                    status = "E04"
+                    msg = ', '.join(comment)
+
+            elif device_name == 'WeightDeviceData':
+                sql = f"""
+                            SELECT LotNo as RuncardId, UserId, CreationDate as data_time
+                            FROM [PMG_DEVICE].[dbo].[WeightDeviceData]
+                            where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -1, GETDATE()) AND CreationDate <= GETDATE()
+                            """
+                rows = self.scada_db.select_sql_dict(sql)
+
+                if len(rows) != 0:
+                    comment = [row['RuncardId'] for row in rows]
+                    status = "E05"
+                    msg = ', '.join(comment)
+
+        except Exception as e:
+            print(e)
+            status = "E99"
+
+        return status, msg

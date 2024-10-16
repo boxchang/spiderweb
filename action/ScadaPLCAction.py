@@ -1,0 +1,45 @@
+from datetime import datetime, timedelta
+
+
+class ScadaPLCAction():
+    vnedc_db = None
+    scada_db = None
+    status = None
+
+    def __init__(self, obj):
+        self.vnedc_db = obj.vnedc_db
+        self.scada_db = obj.scada_db
+        self.status = obj.status
+
+    # Check if there is no data for a long time
+    def IsOverTime(self, device):
+        device_name = device.device_name
+        table_name = device.comment
+        msg = ""
+        status = "S01"
+
+        try:
+            if 'NBR' in device_name:
+                sql = f"""
+                            SELECT CONVERT(varchar(30), max(datetime), 121) AS last_time
+                            FROM {table_name}
+                        """
+
+            elif 'PVC' in device_name:
+                sql = f"""
+                            SELECT max(CreationTime) as last_time
+                            FROM [PMG_DEVICE].[dbo].[PVC_MACHINE_DATA]
+                            where MachineName = '{device_name}'
+                        """
+            rows = self.scada_db.select_sql_dict(sql)
+            given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+            current_time = datetime.now()
+            time_difference = current_time - given_time
+
+            if time_difference > timedelta(minutes=30):
+                status = "E01"
+
+        except Exception as e:
+            print(e)
+            status = "E99"
+        return status, msg

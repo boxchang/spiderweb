@@ -22,6 +22,8 @@ class DeviceInfo:
         self.update_by = update_by
 
 
+
+
 class DeviceType:
 
     def __init__(self, type_name, job_frequency, update_at, update_by):

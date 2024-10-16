@@ -1,12 +1,19 @@
 from abc import abstractmethod, ABC
 
-from database import vnedc_database
+from database import vnedc_database, scada_database
 from models import DeviceInfo
+from utils import Log
 
 
 class Monitor(ABC):
-    def __init__(self, device_type):
-        self.device_type = device_type
+    status = {}
+    vnedc_db = None
+    scada_db = None
+
+    def __init__(self):
+        self.vnedc_db = vnedc_database()
+        self.scada_db = scada_database()
+        self.status = self.get_status_define()
 
     @abstractmethod
     def monitor(self):
@@ -16,7 +23,15 @@ class Monitor(ABC):
     def stop(self):
         pass
 
-    def get_device_list(self, db, device_type):
+    def get_status_define(self):
+        sql = """
+            SELECT status_code,[desc] FROM [VNEDC].[dbo].[spiderweb_monitor_status]
+        """
+        results = self.vnedc_db.select_sql_dict(sql)
+        results = {item['status_code']: item['desc'] for item in results}
+        return results
+
+    def get_device_list(self, device_type):
 
         sql = f"""SELECT c.id, mt.type_name monitor_type, dt.type_name device_type, device_name, ip_address, port,
                     plant, enable, [desc] status, status_update_at,comment, c.update_at,c.update_by_id update_by, c.device_group
@@ -25,7 +40,7 @@ class Monitor(ABC):
                     JOIN [VNEDC].[dbo].[spiderweb_device_type] dt on c.device_type_id = dt.id
                     JOIN [VNEDC].[dbo].[spiderweb_monitor_status] s on c.status_id = s.status_code and dt.type_name='{device_type}'
                     WHERE enable = 'Y'"""
-        rows = db.select_sql_dict(sql)
+        rows = self.vnedc_db.select_sql_dict(sql)
 
         devices = [
             DeviceInfo(id=row['id'], monitor_type=row['monitor_type'], device_type=row['device_type'],  device_name=row['device_name'],
@@ -34,3 +49,26 @@ class Monitor(ABC):
                        update_at=row['update_at'], update_by=row['update_by'])
             for row in rows]
         return devices
+
+    def update_device_status(self, id, status_id):
+        sql = f"""
+           update [VNEDC].[dbo].[spiderweb_monitor_device_list] set status_id = '{status_id}', status_update_at = GETDATE() 
+           where id = {id}
+           """
+        self.vnedc_db.execute_sql(sql)
+
+    def get_device_status(self, action, device):
+        status, msg = action(device)
+        return status, msg
+
+    def wecom_log(self, device, status, msg):
+        # if device.wecom:
+        #     pass
+        Log.write(self.vnedc_db, device.device_type, msg, status)
+
+    def execute(self, action, device):
+        status, msg = self.get_device_status(action, device)
+        if str(status).startswith('E'):
+            self.update_device_status(device.id, status)
+            self.wecom_log(device, status, msg)
+        return status, msg
