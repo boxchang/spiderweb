@@ -77,7 +77,7 @@ class CountingDeviceMonitor(Monitor):
 
 
 class AOIDeviceMonitor(Monitor):
-    result = {"OKAY": 'S01', "FAIL": 'E01'}
+    result = {"OKAY": 'S01', "FAIL": 'E01', "AOI_Rate": 'E02'}
 
     def monitor(self):
         vnedc_db = vnedc_database()
@@ -101,9 +101,11 @@ class AOIDeviceMonitor(Monitor):
 
         device_name = device.device_name
         sql = f"""
-            SELECT CONVERT(varchar(30), max(od.Cdt), 121) AS last_time
+            SELECT CONVERT(varchar(30), od.Cdt, 121) AS last_time, od.OKQty, od.NGQty
             FROM [PMG_DEVICE].[dbo].[OpticalDevice] od
-            where DeviceId = '{device_name}'
+            WHERE od.DeviceId = '{device_name}'
+            ORDER BY od.Cdt DESC
+            OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;
         """
         try:
             rows = db.select_sql_dict(sql)
@@ -116,7 +118,10 @@ class AOIDeviceMonitor(Monitor):
             if time_difference > timedelta(minutes=30):
                 result = self.result["FAIL"]
             else:
-                result = self.result["OKAY"]
+                if (float(rows[0]['NGQty']) / (float(rows[0]['NGQty']) + rows[0]['OKQty']))*100 > 3:
+                    result = self.result["AOI_Rate"]
+                else:
+                    result = self.result["OKAY"]
         except:
             result = self.result["FAIL"]
         return result
