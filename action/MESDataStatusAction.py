@@ -49,5 +49,6 @@ class MESDataStatusAction():
         except Exception as e:
             print(e)
             status = "E99"
+            msg = e
 
         return status, msg

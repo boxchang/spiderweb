@@ -34,7 +34,7 @@ class Monitor(ABC):
     def get_device_list(self, device_type):
 
         sql = f"""SELECT c.id, mt.type_name monitor_type, dt.type_name device_type, device_name, ip_address, port,
-                    plant, enable, [desc] status, status_update_at,comment, c.update_at,c.update_by_id update_by, c.device_group,
+                    plant, enable, status_code status, status_update_at,comment, c.update_at,c.update_by_id update_by, c.device_group,
                     c.attr1,c.attr2,c.attr3,c.attr4,c.attr5
                     FROM [VNEDC].[dbo].[spiderweb_monitor_device_list] c
                     JOIN [VNEDC].[dbo].[spiderweb_monitor_type] mt on c.monitor_type_id = mt.id
@@ -70,7 +70,7 @@ class Monitor(ABC):
 
     def execute(self, action, device):
         status, msg = self.get_device_status(action, device)
-        if str(status).startswith('E'):
+        if str(status).startswith('E') and device.status.startswith('S'):
             self.update_device_status(device.id, status)
             self.wecom_log(device, status, msg)
         return status, msg

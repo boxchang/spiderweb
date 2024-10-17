@@ -38,8 +38,10 @@ class ScadaPLCAction():
 
             if time_difference > timedelta(minutes=30):
                 status = "E01"
+                msg = f"{device_name} last time is {given_time} already over 30 mins"
 
         except Exception as e:
             print(e)
             status = "E99"
+            msg = e
         return status, msg
