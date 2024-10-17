@@ -1,12 +1,8 @@
-import pyodbc
-
-# 定義員工物件類別
-from database import vnedc_database
-
 
 class DeviceInfo:
 
-    def __init__(self, id, monitor_type, device_type, device_name, ip_address, port, plant, enable, status, status_update_at, comment, update_at, update_by):
+    def __init__(self, id, monitor_type, device_type, device_name, ip_address, port, plant, enable, status,
+                 status_update_at, comment, update_at, update_by, attr1, attr2, attr3, attr4, attr5):
         self.id = id
         self.monitor_type = monitor_type
         self.device_type = device_type
@@ -20,9 +16,11 @@ class DeviceInfo:
         self.comment = comment
         self.update_at = update_at
         self.update_by = update_by
-
-
-
+        self.attr1 = attr1
+        self.attr2 = attr2
+        self.attr3 = attr3
+        self.attr4 = attr4
+        self.attr5 = attr5
 
 class DeviceType:
 

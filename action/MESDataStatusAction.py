@@ -21,7 +21,8 @@ class MESDataStatusAction():
             if device_name == 'ThicknessDeviceData':
                 sql = f"""
                             SELECT RunCardId, DeviceId UserId, Cdt data_time
-                            FROM [PMG_DEVICE].[dbo].[ThicknessDeviceData]
+                            FROM [PMG_DEVICE].[dbo].[ThicknessDeviceData] td
+                            JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on td.RunCardId = r.Id
                             WHERE Cdt >= DATEADD(HOUR, -1, GETDATE()) AND Cdt <= GETDATE() AND MES_STATUS = 'E'
                             """
                 rows = self.scada_db.select_sql_dict(sql)
@@ -34,7 +35,8 @@ class MESDataStatusAction():
             elif device_name == 'WeightDeviceData':
                 sql = f"""
                             SELECT LotNo as RuncardId, UserId, CreationDate as data_time
-                            FROM [PMG_DEVICE].[dbo].[WeightDeviceData]
+                            FROM [PMG_DEVICE].[dbo].[WeightDeviceData] wd
+                            JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on wd.LotNo = r.Id
                             where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -1, GETDATE()) AND CreationDate <= GETDATE()
                             """
                 rows = self.scada_db.select_sql_dict(sql)

@@ -8,11 +8,11 @@ from factory.mes_data_status import MesDataStatusMonitor
 # m = AOIDeviceMonitor()
 # m.monitor()
 
-# m = ScadaPLCMonitor()
-# m.monitor()
+m = ScadaPLCMonitor()
+m.monitor()
 
 # m = MesDataStatusMonitor()
 # m.monitor()
 
-m = KeyDeviceMonitor()
-m.monitor()
+# m = KeyDeviceMonitor()
+# m.monitor()

@@ -14,7 +14,7 @@ class ScadaPLCAction():
     # Check if there is no data for a long time
     def IsOverTime(self, device):
         device_name = device.device_name
-        table_name = device.comment
+        table_name = device.attr1
         msg = ""
         status = "S01"
 

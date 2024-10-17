@@ -6,8 +6,8 @@ class Log(object):
     def write(self, db, func_name, comment, status_code_id):
         try:
             sql = f"""
-            INSERT INTO [dbo].[spiderweb_check_log] (func_name, comment, update_at, status_code_id)
-            VALUES ('{func_name}', '{comment}', GETDATE(), '{status_code_id}')
+            INSERT INTO [dbo].[spiderweb_check_log] (func_name, comment, update_at, status_code_id, notice_flag)
+            VALUES ('{func_name}', '{comment}', GETDATE(), '{status_code_id}', 0)
             """
             db.execute_sql(sql)
 
