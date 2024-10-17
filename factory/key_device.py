@@ -2,7 +2,7 @@ from action.AOIDeviceAction import AOIDeviceAction
 from action.KeyDeviceAction import KeyDeviceAction
 from monitor import Monitor
 from database import vnedc_database
-
+import threading
 
 class KeyDeviceMonitor(Monitor):
     DEVICE_TYPE = "KEY_DEVICE"
@@ -10,10 +10,13 @@ class KeyDeviceMonitor(Monitor):
     def monitor(self):
         devices = self.get_device_list(self.DEVICE_TYPE)
         for device in devices:
-            action = KeyDeviceAction(self).ConnectionTest
-            status, msg = self.execute(action, device)
-            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
+            thread = threading.Thread(target=self.listner, args=(device,))
+            thread.start()
 
+    def listner(self, device):
+        action = KeyDeviceAction(self).ConnectionTest
+        status, msg = self.execute(action, device)
+        print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Key Device Monitor: {self.device_id}")

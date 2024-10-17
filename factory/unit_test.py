@@ -15,8 +15,8 @@ from factory.wecom import WecomMonitor
 # m = MesDataStatusMonitor()
 # m.monitor()
 
-# m = KeyDeviceMonitor()
-# m.monitor()
-
-m = WecomMonitor()
+m = KeyDeviceMonitor()
 m.monitor()
+
+# m = WecomMonitor()
+# m.monitor()
