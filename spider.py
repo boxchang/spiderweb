@@ -49,7 +49,8 @@ class MonitorFactory:
             raise ValueError(f"Unknown device type: {device_type}")
 
 def main():
-    device_type_list = Utils.get_device_type_list()
+    utils = Utils()
+    device_type_list = utils.get_device_type_list()
 
     threads = []
 
