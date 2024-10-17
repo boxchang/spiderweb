@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import psutil
 import random
 import socket
+import json
 
 class KeyDeviceAction():
     vnedc_db = None
@@ -14,7 +15,8 @@ class KeyDeviceAction():
         self.status = obj.status
 
     def ConnectionTest(self, device):
-        message = "Info"
+        msg = ""
+        request = "INFO"
         status = "S01"
         server_port = self.get_port_list()
         client_ip = device.ip_address
@@ -22,16 +24,22 @@ class KeyDeviceAction():
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
             server_socket.bind(("0.0.0.0", server_port))
             print(f"Sending message to {client_ip}:{client_port}")
-            server_socket.sendto(message.encode(), (client_ip, client_port))
+            server_socket.sendto(request.encode(), (client_ip, client_port))
             try:
                 response, client_address = server_socket.recvfrom(4096)  # Buffer size of 4096
                 client_message = response.decode()
                 server_socket.close()
 
-                if int(client_message) != 1:
-                    status = "E06"
-                    msg = f"Connection with {client_address} closed."
-                    print(f"Connection with {client_address} closed.")
+                pc_info = json.loads(client_message)
+                disks = pc_info['DISKS']
+                for disk in disks:
+                    usage_rate = disk['PERCENT']
+                    print(usage_rate)
+
+                    if usage_rate > 85:
+                        status = "E07"
+                        msg = f"{device.device_name} disk used rate over 85%"
+                        print(f"{device.device_name} disk used rate over 85%")
             except socket.timeout:
                 msg = f"No response from {client_ip}:{client_port}."
                 print(f"No response from {client_ip}:{client_port}.")

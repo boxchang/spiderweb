@@ -1,7 +1,6 @@
 from database import vnedc_database
 from models import DeviceType
 
-
 class Log(object):
     def write(vnedc_db, func_name, comment, status_code_id):
         try:
@@ -14,9 +13,15 @@ class Log(object):
         except Exception as e:
             print(f"Error while logging: {e}")
 
+    def update_log_flag(vnedc_db, id):
+        sql = f"""
+            update [VNEDC].[dbo].[spiderweb_check_log] set notice_flag = 1 where id = {id}
+        """
+        vnedc_db.execute_sql(sql)
+
 class Utils(object):
 
-    def get_device_type_list():
+    def get_device_type_list(self):
         db = vnedc_database()
         sql = f"""SELECT [type_name]
                       ,[job_frequency]
