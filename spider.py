@@ -4,6 +4,7 @@ import os
 from factory.factory_equipment import CountingDeviceMonitor, AOIDeviceMonitor, ScadaPLCMonitor
 from factory.key_device import KeyDeviceMonitor
 from factory.mes_data_status import MesDataStatusMonitor
+from factory.sap_data_status import SapDataStatusMonitor
 from factory.wecom import WecomMonitor
 from utils import Utils
 
@@ -45,6 +46,8 @@ class MonitorFactory:
             return WecomMonitor()
         elif device_type == 'KEY_DEVICE':
             return KeyDeviceMonitor()
+        elif device_type == 'SAPTicket':
+            return SapDataStatusMonitor()
         else:
             raise ValueError(f"Unknown device type: {device_type}")
 
