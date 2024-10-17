@@ -44,6 +44,6 @@ class WecomMonitor(Monitor):
         rows = vnedc_db.select_sql_dict(sql)
 
         for row in rows:
-            msg = f"{row['comment']}"
+            msg = f"{row['func_name']} {row['comment']}"
             self.send_wecom(msg)
             Log.update_log_flag(vnedc_db, row['id'])
