@@ -7,8 +7,8 @@ from factory.wecom import WecomMonitor
 # m = CountingDeviceMonitor()
 # m.monitor()
 
-# m = AOIDeviceMonitor()
-# m.monitor()
+m = AOIDeviceMonitor()
+m.monitor()
 
 # m = ScadaPLCMonitor()
 # m.monitor()
@@ -22,5 +22,5 @@ from factory.wecom import WecomMonitor
 # m = WecomMonitor()
 # m.monitor()
 
-m = SapDataStatusMonitor()
-m.monitor()
+# m = SapDataStatusMonitor()
+# m.monitor()

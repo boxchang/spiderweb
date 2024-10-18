@@ -39,7 +39,7 @@ class WecomMonitor(Monitor):
         msg = ""
 
         sql = f"""
-            SELECT * FROM [VNEDC].[dbo].[spiderweb_check_log] where notice_flag = 0
+            SELECT * FROM [VNEDC].[dbo].[spiderweb_monitor_device_log] where notice_flag = 0
         """
         rows = vnedc_db.select_sql_dict(sql)
 

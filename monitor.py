@@ -70,7 +70,7 @@ class Monitor(ABC):
 
     def execute(self, action, device):
         status, msg = self.get_device_status(action, device)
-        if str(status).startswith('E') and device.status.startswith('S'):
-            self.update_device_status(device.id, status)
-            self.wecom_log(device, status, msg)
+        # if str(status).startswith('E') and device.status.startswith('S'):
+        self.update_device_status(device.id, status)
+        # self.wecom_log(device, status, msg)
         return status, msg
