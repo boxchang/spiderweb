@@ -2,11 +2,11 @@ from database import vnedc_database
 from models import DeviceType
 
 class Log(object):
-    def write(vnedc_db, func_name, comment, status_code_id):
+    def write(vnedc_db, func_name, comment, status_code_id, device_id):
         try:
             sql = f"""
-            INSERT INTO [dbo].[spiderweb_check_log] (func_name, comment, update_at, status_code_id, notice_flag)
-            VALUES ('{func_name}', '{comment}', GETDATE(), '{status_code_id}', 0)
+            INSERT INTO [dbo].[spiderweb_monitor_device_log] (func_name, comment, update_at,notice_flag, device_id, status_code_id)
+            VALUES ('{func_name}', '{comment}', GETDATE(), 0, {device_id},'{status_code_id}')
             """
             vnedc_db.execute_sql(sql)
 
@@ -15,7 +15,7 @@ class Log(object):
 
     def update_log_flag(vnedc_db, id):
         sql = f"""
-            update [VNEDC].[dbo].[spiderweb_check_log] set notice_flag = 1 where id = {id}
+            update [VNEDC].[dbo].[spiderweb_monitor_device_log] set notice_flag = 1 where id = {id}
         """
         vnedc_db.execute_sql(sql)
 

@@ -27,7 +27,7 @@ class MESDataStatusAction():
                             """
                 rows = self.scada_db.select_sql_dict(sql)
 
-                if len(rows) != 0:
+                if len(rows) > 0:
                     comment = [row['RuncardId'] for row in rows]
                     status = "E04"
                     msg = ', '.join(comment)
@@ -41,7 +41,7 @@ class MESDataStatusAction():
                             """
                 rows = self.scada_db.select_sql_dict(sql)
 
-                if len(rows) != 0:
+                if len(rows) > 0:
                     comment = [row['RuncardId'] for row in rows]
                     status = "E05"
                     msg = ', '.join(comment)

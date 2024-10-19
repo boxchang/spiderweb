@@ -17,25 +17,47 @@ class SAPDataStatusAction():
         try:
             if device_name == 'WorkInProcess':
                 sql = f"""
-                            select top 120 
-                            IIF(CHARINDEX('nbr',r.WorkCenterName)>0, 'nbr', 'pvc') as WorkCentertype, 
-                            r.WorkOrderId, r.id runId, r.LineName, r.Period,
-                            d.*, p.StorageLocation
-                            from [PMGMES].[dbo].PMG_MES_WorkInProcessDetail d (nolock) inner join [PMGMES].[dbo].PMG_MES_WorkInProcess p (nolock) on d.WorkInProcessId=p.id
-                            inner join [PMGMES].[dbo].PMG_MES_RunCard r (nolock) on p.RunCardId=r.id
-                            where d.PrintType='ticket' and d.CreationTime>= GETDATE()-1
-                            and ( D.IsERP=0 or D.ErpSTATUS != 'S' )
-                            --and D.IsERP=0 or (D.IsERP=1 and D.ErpStatus='S' and datediff(hh, d.CreationTime, getdate())<24 )
-                            order by D.IsERP desc, WorkCentertype, r.WorkOrderId, D.PrintDate desc
-
-                            """
+                        select top 120 
+                        IIF(CHARINDEX('nbr',r.WorkCenterName)>0, 'nbr', 'pvc') as WorkCentertype, 
+                        r.WorkOrderId, r.id runId, r.LineName, r.Period,
+                        d.*, p.StorageLocation
+                        from [PMGMES].[dbo].PMG_MES_WorkInProcessDetail d (nolock) inner join [PMGMES].[dbo].PMG_MES_WorkInProcess p (nolock) on d.WorkInProcessId=p.id
+                        inner join [PMGMES].[dbo].PMG_MES_RunCard r (nolock) on p.RunCardId=r.id
+                        where d.PrintType='ticket' and d.CreationTime BETWEEN DATEADD(HOUR, -2, GETDATE()) AND DATEADD(HOUR, -1, GETDATE())
+                        and ( D.IsERP=0 or D.ErpSTATUS != 'S' )
+                        order by D.IsERP desc, WorkCentertype, r.WorkOrderId, D.PrintDate desc
+                                                    """
                 rows = self.scada_db.select_sql_dict(sql)
 
                 if len(rows) != 0:
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
 
+            elif device_name == 'FaultyDetail':
+                sql = f"""
+                        SELECT LotNo, EmployeeId
+                        FROM [PMGMES].[dbo].[PMG_MES_FaultyDetail]
+                        WHERE ErpSTATUS != 'S'
+                        AND ErpReturnDate BETWEEN DATEADD(HOUR, -2, GETDATE()) AND DATEADD(HOUR, -1, GETDATE())
+                        """
+                rows = self.scada_db.select_sql_dict(sql)
 
+                if len(rows) != 0:
+                    status = "E08"
+                    msg = rows[0]['ErpMESSAGE']
+
+            elif device_name == 'ScrapDetail':
+                sql = f"""
+                        select LotNo, EmployeeId
+                        from [PMGMES].[dbo].[PMG_MES_ScrapDetail]
+                        where ErpSTATUS != 'S' 
+                        AND ErpReturnDate BETWEEN DATEADD(HOUR, -2, GETDATE()) AND DATEADD(HOUR, -1, GETDATE())
+                        """
+                rows = self.scada_db.select_sql_dict(sql)
+
+                if len(rows) != 0:
+                    status = "E08"
+                    msg = rows[0]['ErpMESSAGE']
 
         except Exception as e:
             print(e)

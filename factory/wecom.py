@@ -39,11 +39,11 @@ class WecomMonitor(Monitor):
         msg = ""
 
         sql = f"""
-            SELECT * FROM [VNEDC].[dbo].[spiderweb_check_log] where notice_flag = 0
+            SELECT * FROM [VNEDC].[dbo].[spiderweb_monitor_device_log] where notice_flag = 0
         """
         rows = vnedc_db.select_sql_dict(sql)
-
-        for row in rows:
-            msg = f"{row['func_name']} {row['comment']}"
-            self.send_wecom(msg)
-            Log.update_log_flag(vnedc_db, row['id'])
+        if len(rows) > 0:
+            for row in rows:
+                msg = f"{row['func_name']} {row['comment']}"
+                self.send_wecom(msg)
+                Log.update_log_flag(vnedc_db, row['id'])

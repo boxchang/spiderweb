@@ -5,7 +5,7 @@ from factory.sap_data_status import SapDataStatusMonitor
 from factory.wecom import WecomMonitor
 
 # m = CountingDeviceMonitor()
-# m.monitor()
+# # m.monitor()
 
 # m = AOIDeviceMonitor()
 # m.monitor()
@@ -13,8 +13,8 @@ from factory.wecom import WecomMonitor
 # m = ScadaPLCMonitor()
 # m.monitor()
 
-# m = MesDataStatusMonitor()
-# m.monitor()
+m = MesDataStatusMonitor()
+m.monitor()
 
 # m = KeyDeviceMonitor()
 # m.monitor()
@@ -22,5 +22,5 @@ from factory.wecom import WecomMonitor
 # m = WecomMonitor()
 # m.monitor()
 
-m = SapDataStatusMonitor()
-m.monitor()
+# m = SapDataStatusMonitor()
+# m.monitor()

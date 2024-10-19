@@ -66,11 +66,11 @@ class Monitor(ABC):
     def wecom_log(self, device, status, msg):
         # if device.wecom:
         #     pass
-        Log.write(self.vnedc_db, device.device_type, msg, status)
+        Log.write(self.vnedc_db, device.device_type, msg, status, device.id)
 
     def execute(self, action, device):
         status, msg = self.get_device_status(action, device)
+        self.update_device_status(device.id, status)
         if str(status).startswith('E') and device.status.startswith('S'):
-            self.update_device_status(device.id, status)
             self.wecom_log(device, status, msg)
         return status, msg
