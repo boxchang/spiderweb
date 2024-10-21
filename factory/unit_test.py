@@ -7,14 +7,14 @@ from factory.wecom import WecomMonitor
 # m = CountingDeviceMonitor()
 # # m.monitor()
 
-m = AOIDeviceMonitor()
-m.monitor()
+# m = AOIDeviceMonitor()
+# m.monitor()
 
 # m = ScadaPLCMonitor()
 # m.monitor()
 
-m = MesDataStatusMonitor()
-m.monitor()
+# m = MesDataStatusMonitor()
+# m.monitor()
 
 # m = KeyDeviceMonitor()
 # m.monitor()
