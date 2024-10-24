@@ -18,7 +18,7 @@ class MESDataStatusAction():
         status = "S01"
 
         try:
-            if device_name == 'ThicknessDeviceData':
+            if device_name == 'THICKNESS_DATA':
                 sql = f"""
                             SELECT RunCardId, DeviceId UserId, Cdt data_time
                             FROM [PMG_DEVICE].[dbo].[ThicknessDeviceData] td
@@ -32,7 +32,7 @@ class MESDataStatusAction():
                     status = "E04"
                     msg = ', '.join(comment)
 
-            elif device_name == 'WeightDeviceData':
+            elif device_name == 'WEIGHT_DATA':
                 sql = f"""
                             SELECT LotNo as RuncardId, UserId, CreationDate as data_time
                             FROM [PMG_DEVICE].[dbo].[WeightDeviceData] wd

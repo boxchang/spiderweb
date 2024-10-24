@@ -15,7 +15,7 @@ class SAPDataStatusAction():
         status = "S01"
 
         try:
-            if device_name == 'WorkInProcess':
+            if device_name == 'WORK_IN_PROCESS':
                 sql = f"""
                         select top 120 
                         IIF(CHARINDEX('nbr',r.WorkCenterName)>0, 'nbr', 'pvc') as WorkCentertype, 
@@ -33,7 +33,7 @@ class SAPDataStatusAction():
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
 
-            elif device_name == 'FaultyDetail':
+            elif device_name == 'FAULTY_DETAIL':
                 sql = f"""
                         SELECT LotNo, EmployeeId
                         FROM [PMGMES].[dbo].[PMG_MES_FaultyDetail]
@@ -46,7 +46,7 @@ class SAPDataStatusAction():
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
 
-            elif device_name == 'ScrapDetail':
+            elif device_name == 'SCRAP_DETAIL':
                 sql = f"""
                         select LotNo, EmployeeId
                         from [PMGMES].[dbo].[PMG_MES_ScrapDetail]
