@@ -1,7 +1,5 @@
-from action.AOIDeviceAction import AOIDeviceAction
 from action.KeyDeviceAction import KeyDeviceAction
 from monitor import Monitor
-from database import vnedc_database
 import threading
 
 class KeyDeviceMonitor(Monitor):

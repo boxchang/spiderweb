@@ -1,5 +1,5 @@
 from monitor import Monitor
-from utils import Utils, Log
+from utils import Log
 import os
 import requests
 
