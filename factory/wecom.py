@@ -35,7 +35,13 @@ class WecomMonitor(Monitor):
         return r.json()
 
     def send_msg(self, vnedc_db):
-        msg = ""
+        comment = ""
+        msg = """
+        [Issue #{row_id}]
+        Type: {device_type}
+        Device: {device_name}
+        {comment}
+        """
 
         sql = f"""
                 SELECT smdlog.id, smdlog.func_name, smdlog.comment, 
@@ -47,20 +53,21 @@ class WecomMonitor(Monitor):
                 FROM [VNEDC].[dbo].[spiderweb_monitor_device_log] smdlog
                 JOIN [VNEDC].[dbo].[spiderweb_monitor_device_list] smdlist
                 on smdlog.device_id = smdlist.id
-                where smdlog.recover_msg != 1                   
+                where smdlog.recover_msg is null                   
                 """
         rows = vnedc_db.select_sql_dict(sql)
         if len(rows) > 0:
             for row in rows:
+
                 if int(row['notice_flag']) == 0:
-                    msg = f"[Issue #{row['id']}] {row['func_name']} {row['comment']}"
-                    self.send_wecom(msg)
-                    Log.update_log_flag(vnedc_db, row['id'])
+                    comment = row['comment']
                 elif int(row['notice_flag']) == 1:
                     if str(row['error_status'])[0] == 'E'  and str(row['current_status']) == 'S':
-                        msg = f"[Issue #{row['id']}] {row['func_name']} already recover !"
+                        comment = "already recover !"
                     elif str(row['error_status'])[0] == 'E' and str(row['current_status']) == 'E':
-                        msg = f"[Issue #{row['id']}] now change to {row['comment']}"
-                    self.send_wecom(msg)
-                    Log.update_msg_flag(vnedc_db, row['id'])
+                        comment = f"now change to {row['comment']}"
+                msg.format(row_id=row['id'], device_type=row['func_name'], comment=comment)
+                self.send_wecom(msg)
+                Log.update_msg_flag(vnedc_db, row['id'])
+
 

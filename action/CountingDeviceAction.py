@@ -44,16 +44,16 @@ class CountingDeviceAction():
                 time_difference = current_time - given_time
                 if time_difference > timedelta(minutes=30):
                     status = "E01"
-                    msg = f"{device_name} last time is {given_time} already over 30 mins"
+                    msg = f"The last time is {given_time} already over 30 mins"
                 else:
                     last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                     last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                     if last_time - last_null > timedelta(minutes=30):
                         status = "E01"
-                        msg = f"{device_name} last time is {given_time} already over 30 mins"
+                        msg = f"The last time is {given_time} already over 30 mins"
             else:
                 status = "E03"
-                msg = f"{device_name} no any data"
+                msg = f"No any data"
         except Exception as e:
             print(e)
             status = "E99"

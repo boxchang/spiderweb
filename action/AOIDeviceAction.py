@@ -66,7 +66,7 @@ class AOIDeviceAction():
             if len(rows) > 0:
                 if float(rows[0]['ng_rate']) > 3:
                     status = "E02"
-                    msg = f"{device_name} Optical Error Rate > 3%"
+                    msg = f"Optical Error Rate > 3%"
 
         except Exception as e:
             print(e)

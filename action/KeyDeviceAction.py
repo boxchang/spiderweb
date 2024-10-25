@@ -37,8 +37,8 @@ class KeyDeviceAction():
 
                     if usage_rate > 85:
                         status = "E07"
-                        msg = f"{device.device_name} disk used rate over 85%"
-                        print(f"{device.device_name} disk used rate over 85%")
+                        msg = f"Disk used rate over 85%"
+                        print(f"Disk used rate over 85%")
             except socket.timeout:
                 msg = f"No response from {client_ip}:{client_port}."
                 print(f"No response from {client_ip}:{client_port}.")
