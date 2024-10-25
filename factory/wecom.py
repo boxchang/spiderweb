@@ -61,13 +61,14 @@ class WecomMonitor(Monitor):
 
                 if int(row['notice_flag']) == 0:
                     comment = row['comment']
+                    Log.update_log_flag(vnedc_db, row['id'])
                 elif int(row['notice_flag']) == 1:
                     if str(row['error_status'])[0] == 'E'  and str(row['current_status']) == 'S':
                         comment = "already recover !"
                     elif str(row['error_status'])[0] == 'E' and str(row['current_status']) == 'E':
                         comment = f"now change to {row['comment']}"
+                    Log.update_msg_flag(vnedc_db, row['id'])
                 msg.format(row_id=row['id'], device_type=row['func_name'], comment=comment)
                 self.send_wecom(msg)
-                Log.update_msg_flag(vnedc_db, row['id'])
 
 
