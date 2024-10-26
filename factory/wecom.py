@@ -44,7 +44,7 @@ class WecomMonitor(Monitor):
         """
 
         sql = f"""
-                SELECT smdlog.id, smdlog.func_name, smdlog.comment, 
+                SELECT smdlog.id, smdlog.func_name, smdlog.comment, smdlist.device_name,
                 smdlog.status_code_id error_status, smdlist.status_id current_status, smdlog.notice_flag, smdlog.recover_msg,
                 case 
                     when smdlog.status_code_id = smdlist.status_id then 1
@@ -68,7 +68,7 @@ class WecomMonitor(Monitor):
                     elif str(row['error_status'])[0] == 'E' and str(row['current_status']) == 'E':
                         comment = f"now change to {row['comment']}"
                     Log.update_msg_flag(vnedc_db, row['id'])
-                msg.format(row_id=row['id'], device_type=row['func_name'], comment=comment)
+                msg.format(row_id=row['id'], device_type=row['func_name'], device_name=row['device_name'], comment=comment)
                 self.send_wecom(msg)
 
 

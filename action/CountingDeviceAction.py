@@ -15,48 +15,68 @@ class CountingDeviceAction():
     def IsOverTime(self, device):
         msg = ""
         status = "S01"
+        speed = 220
         device_name = device.device_name
+        today = datetime.today().strftime('%Y-%m-%d')
+        wo_sql = f"""
+            SELECT mach_id
+            FROM [VNEDC].[dbo].[collection_daily_prod_info_head]
+            where data_date = '{today}'
+        """
+        condition = self.vnedc_db.select_sql_dict(wo_sql)
+        mach_list = sorted(list(set([f"NBR_CountingMachine_{int(mach['mach_id'][-2:])}" for mach in condition])))
+        match_name = any(device_name[:-1] == mach for mach in mach_list)
 
-        sql = f"""
-                           SELECT last_time
-                               FROM (
-                                   SELECT TOP 1 CreationTime as last_time
-                                   FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
-                                   WHERE MachineName = '{device_name}'
-                                   ORDER BY CreationTime DESC
-                               ) AS LatestRow
-                               UNION ALL
-                               SELECT * 
-                               FROM (
-                                   SELECT TOP 1 CreationTime as last_time
-                                   FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
-                                   WHERE MachineName = '{device_name}'
-                                     AND Qty2 IS NOT NULL
-                                   ORDER BY CreationTime DESC
-                               ) AS LatestNonNullRow;
-                   """
-        try:
-            rows = self.scada_db.select_sql_dict(sql)
+        if match_name == True:
+            sql = f"""
+               SELECT last_time, Speed
+                   FROM (
+                       SELECT TOP 1 CreationTime as last_time, Speed
+                       FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
+                       WHERE MachineName = '{device_name}'
+                       ORDER BY CreationTime DESC
+                   ) AS LatestRow
+                   UNION ALL
+                   SELECT * 
+                   FROM (
+                       SELECT TOP 1 CreationTime as last_time, Speed
+                       FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
+                       WHERE MachineName = '{device_name}'
+                         AND Qty2 IS NOT NULL
+                       ORDER BY CreationTime DESC
+                   ) AS LatestNonNullRow;
+                       """
+            try:
 
-            if len(rows) == 2:
-                given_time = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                current_time = datetime.now()
-                time_difference = current_time - given_time
-                if time_difference > timedelta(minutes=30):
-                    status = "E01"
-                    msg = f"The last time is {given_time} already over 30 mins"
-                else:
-                    last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                    last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                    if last_time - last_null > timedelta(minutes=30):
+                rows = self.scada_db.select_sql_dict(sql)
+
+                if len(rows) == 2:
+                    given_time = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                    current_time = datetime.now()
+                    time_difference = current_time - given_time
+                    if time_difference > timedelta(minutes=30):
                         status = "E01"
                         msg = f"The last time is {given_time} already over 30 mins"
-            else:
-                status = "E03"
-                msg = f"No any data"
-        except Exception as e:
-            print(e)
-            status = "E99"
-            msg = e
+                    else:
+                        last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                        last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                        if last_time - last_null > timedelta(minutes=30):
+                            status = "E01"
+                            msg = f"NULL from {given_time}"
+                        else:
+                            if int(rows[0]['Speed']) > speed:
+                                status = "E01"
+                                msg = f"{device_name} speed is > 220"
+                else:
+                    status = "E03"
+                    msg = f"No any data"
+            except Exception as e:
+                print(e)
+                status = "E99"
+                msg = e
+
+        else:
+            status = 'S01'
+            msg = 'Machine stop'
 
         return status, msg

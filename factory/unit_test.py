@@ -4,8 +4,8 @@ from factory.mes_data_status import MesDataStatusMonitor
 from factory.sap_data_status import SapDataStatusMonitor
 from factory.wecom import WecomMonitor
 
-# m = CountingDeviceMonitor()
-# # m.monitor()
+m = CountingDeviceMonitor()
+m.monitor()
 
 # m = AOIDeviceMonitor()
 # m.monitor()
