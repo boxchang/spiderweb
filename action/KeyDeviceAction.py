@@ -21,6 +21,7 @@ class KeyDeviceAction():
         client_ip = device.ip_address
         client_port = int(device.port)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
+            server_socket.settimeout(20)
             server_socket.bind(("0.0.0.0", server_port))
             print(f"Sending message to {client_ip}:{client_port}")
             server_socket.sendto(request.encode(), (client_ip, client_port))
