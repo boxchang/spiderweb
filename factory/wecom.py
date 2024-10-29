@@ -50,22 +50,23 @@ class WecomMonitor(Monitor):
                 where smdlog.recover_msg is NULL                
                 """
         try:
+            green_icon = '\u2705'
+            yellow_icon = '\u26A0'
             rows = vnedc_db.select_sql_dict(sql)
-            num = len(rows)
             if len(rows) > 0:
                 for row in rows:
                     msg = """{icon_mode}[Issue #{row_id}]\nType: **{device_type}**\nDevice: **{device_name}**\n{comment}"""
                     if str(row['notice_flag']) == 'False':
                         Log.update_log_flag(vnedc_db, row['id'])
-                        icon_mode = '\u26A0'
+                        icon_mode = yellow_icon
                         comment = row['comment']
                     elif str(row['notice_flag']) == 'True':
                         if 's' in str(row['current_status']).lower():
                             comment = "already recover !"
-                            icon_mode = '\u2705'
+                            icon_mode = green_icon
                         elif str(row['error_status']).lower() != str(row['current_status']).lower():
                             comment = f"now change to {row['comment']}"
-                            icon_mode = '\u26A0'
+                            icon_mode = yellow_icon
 
                         Log.update_msg_flag(vnedc_db, row['id'])
                     msg = msg.format(icon_mode=icon_mode, row_id=row['id'], device_type=row['func_name'], device_name=row['device_name'], comment=comment)
