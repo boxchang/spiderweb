@@ -31,9 +31,9 @@ class AOIDeviceMonitor(Monitor):
             status, msg = self.execute(action, device)
             print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
 
-            action = AOIDeviceAction(self).Over_AOI_NG_Rate
-            status, msg = self.execute(action, device)
-            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
+            # action = AOIDeviceAction(self).Over_AOI_NG_Rate
+            # status, msg = self.execute(action, device)
+            # print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
