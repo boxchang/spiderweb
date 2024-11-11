@@ -1,5 +1,6 @@
 from action.SAPDataStatusAction import SAPDataStatusAction
 from monitor import Monitor
+from datetime import datetime
 
 
 class SapDataStatusMonitor(Monitor):
@@ -10,7 +11,7 @@ class SapDataStatusMonitor(Monitor):
         for device in devices:
             action = SAPDataStatusAction(self).CheckDataStatus
             status, msg = self.execute(action, device)
-            print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")

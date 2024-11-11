@@ -1,6 +1,7 @@
 from action.KeyDeviceAction import KeyDeviceAction
 from monitor import Monitor
 import threading
+from datetime import datetime
 
 class KeyDeviceMonitor(Monitor):
     DEVICE_TYPE = "KEY_DEVICE"
@@ -14,7 +15,7 @@ class KeyDeviceMonitor(Monitor):
     def listner(self, device):
         action = KeyDeviceAction(self).ConnectionTest
         status, msg = self.execute(action, device)
-        print(f"Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Key Device Monitor: {self.device_id}")
