@@ -38,6 +38,7 @@ class ScadaPLCAction():
 
             if time_difference > timedelta(minutes=30):
                 status = "E01"
+                given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
                 msg = f"The last time is {given_time} already over 30 mins"
 
         except Exception as e:

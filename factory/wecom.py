@@ -36,6 +36,7 @@ class WecomMonitor(Monitor):
 
     def send_msg(self, vnedc_db):
         comment = ""
+        msg = ""
 
         sql = f"""
                 SELECT smdlog.id, smdlog.func_name, smdlog.comment, smdlist.device_name,
@@ -50,28 +51,22 @@ class WecomMonitor(Monitor):
                 where smdlog.recover_msg is NULL                
                 """
         try:
-            green_icon = '\u2705'
-            yellow_icon = '\u26A0'
             rows = vnedc_db.select_sql_dict(sql)
             if len(rows) > 0:
                 for row in rows:
-                    msg = """{icon_mode}[Issue #{row_id}]\nType: **{device_type}**\nDevice: **{device_name}**\n{comment}"""
                     if str(row['notice_flag']) == 'False':
                         Log.update_log_flag(vnedc_db, row['id'])
-                        icon_mode = yellow_icon
+
+                    if 's' in str(row['current_status']).lower():
+                        Log.update_recover_flag(vnedc_db, row['id'])
+                    else:
+                        tmp = """[Issue #{row_id}]\t[**{device_type}**]\t[**{device_name}**]\t{comment}\n"""
                         comment = row['comment']
-                    elif str(row['notice_flag']) == 'True':
-                        if 's' in str(row['current_status']).lower():
-                            comment = "already recover !"
-                            icon_mode = green_icon
-                        elif str(row['error_status']).lower() != str(row['current_status']).lower():
-                            comment = f"now change to {row['comment']}"
-                            icon_mode = yellow_icon
+                        msg += tmp.format(row_id=row['id'], device_type=row['func_name'], device_name=row['device_name'], comment=comment)
 
-                        Log.update_msg_flag(vnedc_db, row['id'])
-                    msg = msg.format(icon_mode=icon_mode, row_id=row['id'], device_type=row['func_name'], device_name=row['device_name'], comment=comment)
+            if len(msg) > 0:
+                self.send_wecom(msg)
 
-                    self.send_wecom(msg)
         except Exception as e:
             print(f"Wecom {e}")
 

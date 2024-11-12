@@ -19,7 +19,7 @@ class Log(object):
         """
         vnedc_db.execute_sql(sql)
 
-    def update_msg_flag(vnedc_db, id):
+    def update_recover_flag(vnedc_db, id):
         sql = f"""
             update [VNEDC].[dbo].[spiderweb_monitor_device_log] set recover_msg = 1 where id = {id}
         """
