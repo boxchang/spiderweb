@@ -87,3 +87,9 @@ class CountingDeviceAction():
             msg = 'Machine stop'
 
         return status, msg
+
+    def NoIPQC(self, device):
+        sql = f"""
+        SELECT [MES_MACHINE] ,[LINE]
+        FROM [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] where COUNTING_MACHINE = '{device}'
+        """

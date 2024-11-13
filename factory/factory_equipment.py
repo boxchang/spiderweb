@@ -14,8 +14,11 @@ class CountingDeviceMonitor(Monitor):
         for device in devices:
             action = CountingDeviceAction(self).IsOverTime
             status, msg = self.execute(action, device)
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-CountingDeviceMonitor-IsOverTime: {device.device_type} - {device.device_name} - {self.status[status]}")
 
-            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-Monitoring Factory Equipment: {device.device_type} - {device.device_name} - {self.status[status]}")
+            action = CountingDeviceAction(self).NoIPQC
+            status, msg = self.execute(action, device)
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-CountingDeviceMonitor-NoIPQC: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
