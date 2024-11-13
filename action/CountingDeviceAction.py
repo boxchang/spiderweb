@@ -64,7 +64,8 @@ class CountingDeviceAction():
                         last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                         if last_time - last_null > timedelta(minutes=30):
                             status = "E01"
-                            msg = f"NULL from {given_time}"
+                            last_null = last_null.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                            msg = f"NULL from {last_null}"
                         else:
                             if rows[0]['Speed'] is None:
                                 # status = "E10"
