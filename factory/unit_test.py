@@ -5,7 +5,7 @@ from factory.sap_data_status import SapDataStatusMonitor
 from factory.wecom import WecomMonitor
 
 # m = CountingDeviceMonitor()
-# # m.monitor()
+# m.monitor()
 
 # m = AOIDeviceMonitor()
 # m.monitor()
