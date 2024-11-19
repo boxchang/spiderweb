@@ -3,6 +3,9 @@ import random
 import socket
 import json
 
+import psutil
+
+
 class KeyDeviceAction():
     vnedc_db = None
     scada_db = None
