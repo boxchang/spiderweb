@@ -6,7 +6,7 @@ import time
 
 class WecomMonitor(Monitor):
     def monitor(self):
-        time.sleep(40)
+        time.sleep(3)
         self.send_msg(self.vnedc_db)
         print(f"Start WeCom message")
 
@@ -39,7 +39,7 @@ class WecomMonitor(Monitor):
         msg = ""
 
         sql = f"""
-                SELECT smdlog.id, smdlog.func_name, smdlog.comment, smdlist.device_name,
+                SELECT min(smdlog.id) as id, smdlog.func_name, smdlog.comment, smdlist.device_name,
                 smdlog.status_code_id error_status, smdlist.status_id current_status, smdlog.notice_flag, smdlog.recover_msg,
                 case 
                     when smdlog.status_code_id = smdlist.status_id then 1
@@ -47,8 +47,10 @@ class WecomMonitor(Monitor):
                 end as code
                 FROM [VNEDC].[dbo].[spiderweb_monitor_device_log] smdlog
                 JOIN [VNEDC].[dbo].[spiderweb_monitor_device_list] smdlist
-                on smdlog.device_id = smdlist.id
-                where smdlog.recover_msg is NULL                
+                on smdlog.device_id = smdlist.id and smdlist.device_name = smdlist.device_name
+                where smdlog.recover_msg is NULL  
+				group by smdlog.func_name, smdlog.comment, smdlist.device_name,
+                smdlog.status_code_id , smdlist.status_id , smdlog.notice_flag, smdlog.recover_msg             
                 """
         try:
             rows = vnedc_db.select_sql_dict(sql)
