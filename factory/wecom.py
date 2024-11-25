@@ -66,8 +66,8 @@ class WecomMonitor(Monitor):
                         comment = row['comment']
                         msg += tmp.format(row_id=row['id'], device_type=row['func_name'], device_name=row['device_name'], comment=comment)
 
-            # if len(msg) > 0:
-            #     self.send_wecom(msg)
+            if len(msg) > 0:
+                self.send_wecom(msg)
 
         except Exception as e:
             print(f"Wecom {e}")
