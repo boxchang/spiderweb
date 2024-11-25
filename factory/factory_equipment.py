@@ -9,7 +9,7 @@ class CountingDeviceMonitor(Monitor):
     DEVICE_TYPE = "COUNTING DEVICE"
 
     def monitor(self):
-
+        print(self.MACHINE_MAPPING)
         devices = self.get_device_list(self.DEVICE_TYPE)
         for device in devices:
             action = CountingDeviceAction(self).IsOverTime

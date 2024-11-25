@@ -9,11 +9,13 @@ class Monitor(ABC):
     status = {}
     vnedc_db = None
     scada_db = None
+    MACHINE_MAPPING = {}
 
     def __init__(self):
         self.vnedc_db = vnedc_database()
         self.scada_db = scada_database()
         self.status = self.get_status_define()
+        self.MACHINE_MAPPING = self.get_machine_mapping()
 
     @abstractmethod
     def monitor(self):
@@ -22,6 +24,17 @@ class Monitor(ABC):
     @abstractmethod
     def stop(self):
         pass
+
+
+    def get_machine_mapping(self):
+        sql = """
+            SELECT distinct COUNTING_MACHINE, MES_MACHINE
+            FROM [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE]
+        """
+        results = self.scada_db.select_sql_dict(sql)
+        results = {item['COUNTING_MACHINE']: item['MES_MACHINE'] for item in results}
+        return results
+
 
     def get_status_define(self):
         sql = """
