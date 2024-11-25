@@ -94,6 +94,7 @@ class CountingDeviceAction():
         msg = "Success"
         status = "S01"  # Default to "Success"
         # VN_GD_NBR1_L03
+
         device_name = device.device_name
 
         machine_name = self.MACHINE_MAPPING[device_name]
@@ -101,11 +102,14 @@ class CountingDeviceAction():
         # Return True if has QC check gloves in every hour
         try:
             sql_counting = f"""
-                SELECT SUM(Qty2) as qty
-                FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device.device_name}'
-                and CreationTime between CONVERT(DATETIME, CONVERT(VARCHAR, GETDATE(), 112) + ' ' + RIGHT('00' + CAST(DATEPART(HOUR, GETDATE()) AS VARCHAR), 2) + ':00:00', 120)
-                      AND CONVERT(DATETIME, CONVERT(VARCHAR, GETDATE(), 112) + ' ' + RIGHT('00' + CAST(DATEPART(HOUR, GETDATE()) AS VARCHAR), 2) + ':59:59', 120)
-                and Qty2 is not null
+                SELECT SUM(Qty2)
+                FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
+                WHERE MachineName = '{machine_name}'
+                  AND CreationTime BETWEEN 
+                        CAST(FORMAT(DATEADD(HOUR, -1, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
+                  AND 
+                        CAST(FORMAT(DATEADD(HOUR, -1, GETDATE()), 'yyyy-MM-dd HH:59:59') AS DATETIME)
+                  AND Qty2 IS NOT NULL;
                 """
             counting_data = self.scada_db.select_sql_dict(sql_counting)
 
