@@ -42,7 +42,6 @@ class AOIDeviceAction():
             status = "E99"
         return status, msg
 
-
     def Over_AOI_NG_Rate(self, device):
         device_name = device.device_name
         msg = ""
@@ -74,3 +73,4 @@ class AOIDeviceAction():
             status = "E99"
             msg = e
         return status, msg
+

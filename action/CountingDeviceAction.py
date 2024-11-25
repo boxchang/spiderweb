@@ -89,7 +89,73 @@ class CountingDeviceAction():
         return status, msg
 
     def NoIPQC(self, device):
-        sql = f"""
-        SELECT [MES_MACHINE] ,[LINE]
-        FROM [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] where COUNTING_MACHINE = '{device}'
-        """
+        msg = "Success"
+        status = "S01"  # Default to "Success"
+        # VN_GD_NBR1_L03
+        device_name = device.device_name
+
+        if 'NBR' in device_name:
+            machine_name = f"VN_GD_NBR{1 if int(str(device_name).split('_')[-1][:-1]) < 9 else 2 }_L{(str(device_name).split('_')[-1][:-1]).zfill(2)}"
+        else:
+            machine_name = f"VN_GD_PVC1_L{(str(device_name).split('_')[-1][:-1]).zfill(2)}"
+
+        # Return True if has QC check gloves in every hour
+        sql_check_ipqc = f"""
+                   WITH CheckData AS (
+    -- Lọc dữ liệu thực tế từ bảng dựa trên giờ trước đó
+    SELECT 
+        COUNT(*) AS ValidDataCount
+    FROM [PMGMES].[dbo].[PMG_MES_IPQCInspectingRecord] ipqc
+    JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r
+        ON ipqc.RunCardId = r.Id
+    WHERE r.InspectionDate = CONVERT(date, GETDATE())  -- Chỉ kiểm tra ngày hiện tại
+        AND Period = DATEPART(HOUR, DATEADD(hour, -1, GETDATE()))  -- Kiểm tra giờ trước đó
+        AND OptionName = 'Weight'
+        AND MachineName = '{machine_name}'
+        --AND LineName = 'B2'
+)
+-- So sánh dữ liệu thực tế với Period của giờ trước đó
+SELECT 
+    DATEPART(HOUR, DATEADD(hour, -1, GETDATE())) AS ExpectedPeriod,
+    CASE 
+        WHEN cd.ValidDataCount IS NULL OR cd.ValidDataCount = 0 THEN 'Missing data'  -- Nếu không có dữ liệu
+        ELSE 'Data exists'  -- Nếu có dữ liệu
+    END AS Status
+FROM CheckData cd;
+
+            """
+        sql_check_machines=f"""
+          SELECT SUM(Qty2) as qty
+          FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device.device_name}'
+          and CreationTime between CONVERT(DATETIME, CONVERT(VARCHAR, GETDATE(), 112) + ' ' + RIGHT('00' + CAST(DATEPART(HOUR, GETDATE()) AS VARCHAR), 2) + ':00:00', 120)
+                  AND CONVERT(DATETIME, CONVERT(VARCHAR, GETDATE(), 112) + ' ' + RIGHT('00' + CAST(DATEPART(HOUR, GETDATE()) AS VARCHAR), 2) + ':59:59', 120)
+          and Qty2 is not null
+          """
+
+        try:
+            machines = self.scada_db.select_sql_dict(sql_check_machines)
+            qc = self.scada_db.select_sql_dict(sql_check_ipqc)
+            temp = ""
+            # current_hour = int(datetime.now().hour - timedelta(hours=1))
+            if str(qc[0]["Status"]) == "Missing data" and int(machines[0]["qty"]) > 0:
+                status = "E99"
+                msg = "Not exited the IPQC but have Machine online"
+                print('OK')
+                # if x == qc[x]["ExpectedPeriod"] and machines[0]["qty"] > 0:
+                #     if str(qc[x]["Status"]) == "Missing data":
+                #         temp = "False"
+                #     elif str(qc[x]["Status"]) == "Data exists":
+                #         temp = "True"
+                #     else:
+                #         print("Error")
+                #
+                # if temp == 'False' and machines[0]["qty"] > 0:
+                #     status = "E99"
+                #     msg = "Not exited the IPQC but have Machine online for {device.device_name}"
+                #     temp = ''
+            else:
+                print("Normal")
+        except Exception as e:
+            status = "E99"
+            msg = f"Error while checking IPQC for {device.device_name}: {str(e)}"
+        return status, msg
