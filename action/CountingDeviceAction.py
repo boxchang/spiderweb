@@ -141,18 +141,6 @@ FROM CheckData cd;
                 status = "E99"
                 msg = "Not exited the IPQC but have Machine online"
                 print('OK')
-                # if x == qc[x]["ExpectedPeriod"] and machines[0]["qty"] > 0:
-                #     if str(qc[x]["Status"]) == "Missing data":
-                #         temp = "False"
-                #     elif str(qc[x]["Status"]) == "Data exists":
-                #         temp = "True"
-                #     else:
-                #         print("Error")
-                #
-                # if temp == 'False' and machines[0]["qty"] > 0:
-                #     status = "E99"
-                #     msg = "Not exited the IPQC but have Machine online for {device.device_name}"
-                #     temp = ''
             else:
                 print("Normal")
         except Exception as e:
