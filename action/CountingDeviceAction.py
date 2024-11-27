@@ -102,7 +102,7 @@ class CountingDeviceAction():
         # Return True if has QC check gloves in every hour
         try:
             sql_counting = f"""
-                SELECT SUM(Qty2)
+                SELECT SUM(Qty2) as qty
                 FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
                 WHERE MachineName = '{machine_name}'
                   AND CreationTime BETWEEN 
@@ -139,12 +139,11 @@ class CountingDeviceAction():
             qc = self.scada_db.select_sql_dict(sql_check_ipqc)
             temp = ""
             # current_hour = int(datetime.now().hour - timedelta(hours=1))
-            if str(qc[0]["Status"]) == "Missing data" and int(counting_data[0]["qty"]) > 0:
-                status = "E99"
-                msg = "Not exited the IPQC but have Machine online"
-                print('OK')
-            else:
-                print("Normal")
+            if str(qc[0]["Status"]) == "Missing data":
+                if counting_data[0]["qty"] != None:
+                    if int(counting_data[0]["qty"]) > 0:
+                        status = "E99"
+                        msg = "Not exited the IPQC but have Machine online"
         except Exception as e:
             status = "E99"
             msg = f"Error while checking IPQC for {device.device_name}: {str(e)}"
