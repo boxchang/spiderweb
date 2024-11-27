@@ -31,11 +31,14 @@ class MESDataStatusAction():
                     msg = ', '.join(comment)
 
             elif device_name == 'WEIGHT_DATA':
+                # 有工單派送 + 檢驗項目有重量 才檢查
                 sql = f"""
-                            SELECT LotNo as RuncardId, UserId, CreationDate as data_time
-                            FROM [PMG_DEVICE].[dbo].[WeightDeviceData] wd
-                            JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on wd.LotNo = r.Id COLLATE SQL_Latin1_General_CP1_CS_AS
-                            where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -2, GETDATE()) AND CreationDate <= DATEADD(HOUR, -1, GETDATE())
+                SELECT LotNo as RuncardId, UserId, CreationDate as data_time
+                FROM [PMG_DEVICE].[dbo].[WeightDeviceData] wd
+                JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on wd.LotNo = r.Id COLLATE SQL_Latin1_General_CP1_CS_AS
+                JOIN [PMGMES].[dbo].[PMG_MES_RunCard_IPQCInspectIOptionMapping] m on m.RunCardId = r.Id and GroupType = 'Weight'
+                JOIN [dbo].[PMG_MES_WorkOrder] w on w.Id = r.WorkOrderId and w.StartDate < CreationDate
+                where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -2, GETDATE()) AND CreationDate <= DATEADD(HOUR, -1, GETDATE())
                             """
                 rows = self.scada_db.select_sql_dict(sql)
 
