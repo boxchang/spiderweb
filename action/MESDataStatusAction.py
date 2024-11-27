@@ -34,7 +34,7 @@ class MESDataStatusAction():
                 sql = f"""
                             SELECT LotNo as RuncardId, UserId, CreationDate as data_time
                             FROM [PMG_DEVICE].[dbo].[WeightDeviceData] wd
-                            JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on wd.LotNo = r.Id
+                            JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r on wd.LotNo = r.Id COLLATE SQL_Latin1_General_CP1_CS_AS
                             where MES_STATUS = 'E' and CreationDate >= DATEADD(HOUR, -2, GETDATE()) AND CreationDate <= DATEADD(HOUR, -1, GETDATE())
                             """
                 rows = self.scada_db.select_sql_dict(sql)
