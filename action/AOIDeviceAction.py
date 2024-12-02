@@ -37,14 +37,15 @@ class AOIDeviceAction():
             # print(rows)
             # print(str(rows[0]['ProductItem'][:3]))
 
-            given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-            current_time = datetime.now()
-            time_difference = current_time - given_time
+            if len(rows) > 0:
+                given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                current_time = datetime.now()
+                time_difference = current_time - given_time
 
-            if time_difference > timedelta(minutes=30):
-                status = "E01"
-                given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-                msg = f"The last time is {given_time} already over 30 mins"
+                if time_difference > timedelta(minutes=30):
+                    status = "E01"
+                    given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                    msg = f"The last time is {given_time} already over 30 mins"
 
         except Exception as e:
             print(e)
