@@ -18,8 +18,14 @@ class AOIDeviceAction():
         status = "S01"
 
         sql = f"""
-                    SELECT CONVERT(varchar(30), od.Cdt, 121) AS last_time, od.OKQty, od.NGQty
+                    SELECT CONVERT(varchar(30), od.Cdt, 121) AS last_time, od.OKQty, od.NGQty, wo.ProductItem
                     FROM [PMG_DEVICE].[dbo].[OpticalDevice] od
+                    join [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] cdm
+                    on cdm.COUNTING_MACHINE =  od.DeviceId
+                    join [PMGMES].[dbo].[PMG_DML_DataModelList] dml
+                    on dml.name = cdm.MES_MACHINE and dml.DataModelTypeId = 'DMT000003'
+                    join [PMGMES].[dbo].[PMG_MES_WorkOrder] wo
+                    on wo.MachineId = dml.id and wo.WorkOrderDate = cast(GETDATE() as Date)
                     WHERE od.DeviceId = '{device_name}'
                     ORDER BY od.Cdt DESC
                     OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;
@@ -27,15 +33,19 @@ class AOIDeviceAction():
         try:
             rows = self.scada_db.select_sql_dict(sql)
             # print(rows)
+            # print(str(rows[0]['ProductItem'][:3]))
+            if str(rows[0]['ProductItem'][:3]) == 'V S':
+                status = 'S01'
+                msg = "Producing NON WHITE gloves"
+            else:
+                given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                current_time = datetime.now()
+                time_difference = current_time - given_time
 
-            given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-            current_time = datetime.now()
-            time_difference = current_time - given_time
-
-            if time_difference > timedelta(minutes=30):
-                status = "E01"
-                given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-                msg = f"The last time is {given_time} already over 30 mins"
+                if time_difference > timedelta(minutes=30):
+                    status = "E01"
+                    given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                    msg = f"The last time is {given_time} already over 30 mins"
 
         except Exception as e:
             print(e)
