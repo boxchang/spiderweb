@@ -103,8 +103,9 @@ class CountingDeviceAction():
         try:
             sql_counting = f"""
                 SELECT SUM(Qty2) as qty
-                FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
-                WHERE MachineName = '{machine_name}'
+                FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] cd
+				JOIN [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] cm on cd.MachineName = cm.COUNTING_MACHINE
+                WHERE cm.MES_MACHINE = '{machine_name}'
                   AND CreationTime BETWEEN 
                         CAST(FORMAT(DATEADD(HOUR, -1, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
                   AND 
@@ -141,7 +142,7 @@ class CountingDeviceAction():
             # current_hour = int(datetime.now().hour - timedelta(hours=1))
             if str(qc[0]["Status"]) == "Missing data":
                 if counting_data[0]["qty"] != None:
-                    if int(counting_data[0]["qty"]) > 0:
+                    if int(counting_data[0]["qty"]) > 1000:
                         status = "E99"
                         msg = "Not exited the IPQC but have Machine online"
         except Exception as e:
