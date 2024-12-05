@@ -143,8 +143,9 @@ class CountingDeviceAction():
             if str(qc[0]["Status"]) == "Missing data":
                 if counting_data[0]["qty"] != None:
                     if int(counting_data[0]["qty"]) > 1000:
-                        status = "E99"
-                        msg = "Not exited the IPQC but have Machine online"
+                        status = "E11"
+                        Period = qc[0]["ExpectedPeriod"]
+                        msg = f"Period {Period} No IPQC but have Machine online"
         except Exception as e:
             status = "E99"
             msg = f"Error while checking IPQC for {device.device_name}: {str(e)}"
