@@ -15,6 +15,7 @@ class SAPDataStatusAction():
         status = "S01"
 
         try:
+            # 判斷小票資料上傳ERP失敗
             if device_name == 'WORK_IN_PROCESS':
                 sql = f"""
                         select top 120 
@@ -33,6 +34,7 @@ class SAPDataStatusAction():
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
 
+            # 判斷二級品資料上傳ERP失敗
             elif device_name == 'FAULTY_DETAIL':
                 sql = f"""
                         SELECT LotNo, EmployeeId
@@ -46,6 +48,7 @@ class SAPDataStatusAction():
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
 
+            # 判斷廢品資料上傳ERP失敗
             elif device_name == 'SCRAP_DETAIL':
                 sql = f"""
                         select LotNo, EmployeeId
@@ -58,6 +61,17 @@ class SAPDataStatusAction():
                 if len(rows) != 0:
                     status = "E08"
                     msg = rows[0]['ErpMESSAGE']
+            elif device_name == 'DATA_DOUBLE':
+                sql = """
+                            SELECT CONVERT(VARCHAR(19), CreationTime, 120) AS xx,RuncardId, count(*)
+                              FROM [PMGMES].[dbo].[PMG_MES_WorkInProcess] where CreationTime > GETDATE() - 1
+                              group by CONVERT(VARCHAR(19), CreationTime, 120),RuncardId having count(*) > 1
+                            """
+                rows = self.scada_db.select_sql_dict(sql)
+                if len(rows) != 0:
+                    status = "E12"
+                    runcard = rows[0]['RuncardId']
+                    msg = f"{runcard} data is duplicated in SAP, please check!"
 
         except Exception as e:
             print(e)

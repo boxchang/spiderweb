@@ -107,9 +107,9 @@ class CountingDeviceAction():
 				JOIN [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] cm on cd.MachineName = cm.COUNTING_MACHINE
                 WHERE cm.MES_MACHINE = '{machine_name}'
                   AND CreationTime BETWEEN 
-                        CAST(FORMAT(DATEADD(HOUR, -1, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
+                        CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
                   AND 
-                        CAST(FORMAT(DATEADD(HOUR, -1, GETDATE()), 'yyyy-MM-dd HH:59:59') AS DATETIME)
+                        CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:59:59') AS DATETIME)
                   AND Qty2 IS NOT NULL;
                 """
             counting_data = self.scada_db.select_sql_dict(sql_counting)
@@ -123,14 +123,14 @@ class CountingDeviceAction():
                     JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r
                         ON ipqc.RunCardId = r.Id
                     WHERE r.InspectionDate = CONVERT(date, GETDATE())  -- Chỉ kiểm tra ngày hiện tại
-                        AND Period = DATEPART(HOUR, DATEADD(hour, -1, GETDATE()))  -- Kiểm tra giờ trước đó
+                        AND Period = DATEPART(HOUR, DATEADD(hour, -2, GETDATE()))  -- Kiểm tra giờ trước đó
                         AND OptionName = 'Weight'
                         AND MachineName = '{machine_name}'
                         --AND LineName = 'B2'
                 )
                 -- So sánh dữ liệu thực tế với Period của giờ trước đó
                 SELECT 
-                    DATEPART(HOUR, DATEADD(hour, -1, GETDATE())) AS ExpectedPeriod,
+                    DATEPART(HOUR, DATEADD(hour, -2, GETDATE())) AS ExpectedPeriod,
                     CASE 
                         WHEN cd.ValidDataCount IS NULL OR cd.ValidDataCount = 0 THEN 'Missing data'  -- Nếu không có dữ liệu
                         ELSE 'Data exists'  -- Nếu có dữ liệu
