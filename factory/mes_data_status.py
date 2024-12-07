@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class MesDataStatusMonitor(Monitor):
-    DEVICE_TYPE = "MES JOB"
+    DEVICE_TYPE = "MES DATA"
 
     def monitor(self):
         devices = self.get_device_list(self.DEVICE_TYPE)
