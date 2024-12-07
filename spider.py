@@ -40,7 +40,7 @@ class MonitorFactory:
             return AOIDeviceMonitor()
         elif device_type == "PLC SCADA":
             return ScadaPLCMonitor()
-        elif device_type == 'MES JOB':
+        elif device_type == 'MES DATA':
             return MesDataStatusMonitor()
         elif device_type == 'WECOM':
             return WecomMonitor()
