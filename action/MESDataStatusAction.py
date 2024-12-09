@@ -51,8 +51,9 @@ class MESDataStatusAction():
             elif device_name == 'SCRAP_DATA':
 
                 current_hour = datetime.now().hour
+                today = datetime.now().strftime('%Y%m%d')
 
-                if current_hour in [8, 9, 10, 11, 12]:
+                if current_hour in [10, 11, 12]:
 
                     sql = f"""
                     WITH machs AS (
@@ -64,7 +65,8 @@ class MESDataStatusAction():
                     scrap AS (
                     SELECT r.*
                       FROM [PMGMES].[dbo].[PMG_MES_Scrap] s,  [PMGMES].[dbo].[PMG_MES_RunCard] r
-                      where s.CreationTime > GETDATE()-1 and s.RunCardId = r.Id and s.ActualQty > 300
+                      where s.CreationTime between CONVERT(DATETIME, '{today} 08:00:00', 120) and CONVERT(DATETIME, '{today} 12:59:59', 120)
+                      and s.RunCardId = r.Id and s.ActualQty > 300
                     
                     )
                     
