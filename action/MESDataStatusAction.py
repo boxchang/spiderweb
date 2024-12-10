@@ -81,6 +81,7 @@ class MESDataStatusAction():
                         comment = [row['Abbreviation'] for row in rows]
                         status = "E13"
                         msg = ', '.join(comment)
+                        msg = f"{msg} not ready at peroid {current_hour}"
 
 
         except Exception as e:
