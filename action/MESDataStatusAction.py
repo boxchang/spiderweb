@@ -19,7 +19,7 @@ class MESDataStatusAction():
         msg = ""
         status = "S01"
 
-        startDate = datetime.today().date() - timedelta(days=365)
+        startDate = datetime.today().date() - timedelta(days=1)
         endDate = datetime.today().date()
 
         missingIPQCStandardValue = []
