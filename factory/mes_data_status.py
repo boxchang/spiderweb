@@ -15,5 +15,3 @@ class MesDataStatusMonitor(Monitor):
 
     def stop(self):
         print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
-
-

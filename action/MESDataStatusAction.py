@@ -1,21 +1,29 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class MESDataStatusAction():
     vnedc_db = None
     scada_db = None
+    mes_db = None
     status = None
 
     def __init__(self, obj):
         self.vnedc_db = obj.vnedc_db
         self.scada_db = obj.scada_db
+        self.mes_db = obj.mes_db
         self.status = obj.status
 
     # Check if there is no data for a long time
     def CheckDataStatus(self, device):
         device_name = device.device_name
+        table_name = device.attr1
         msg = ""
         status = "S01"
 
+        startDate = datetime.today().date() - timedelta(days=1)
+        endDate = datetime.today().date()
+
+        missingIPQCStandardValue = []
+        missingSCADAStandardValue = []
         try:
             if device_name == 'THICKNESS_DATA':
                 sql = f"""
@@ -82,7 +90,71 @@ class MESDataStatusAction():
                         status = "E13"
                         msg = ', '.join(comment)
                         msg = f"{msg} not ready at peroid {current_hour}"
+            elif '_standard' in device_name:
+                if 'NBR' in device_name:
+                    sql = f"""
+                        SELECT DISTINCT PartNo, ProductItem
+                        FROM [PMGMES].[dbo].[PMG_MES_WorkOrder]
+                        WHERE CreationTime BETWEEN CONVERT(DATETIME, '{startDate} 06:00:00', 120)
+                        AND CONVERT(DATETIME, '{endDate} 05:59:59', 120)
+                        AND SAP_FactoryDescr LIKE '%NBR%'
+                            """
 
+                elif 'PVC' in device_name:
+                    sql = f"""
+                        SELECT DISTINCT PartNo, ProductItem
+                        FROM [PMGMES].[dbo].[PMG_MES_WorkOrder]
+                        WHERE CreationTime BETWEEN CONVERT(DATETIME, '{startDate} 06:00:00', 120)
+                        AND CONVERT(DATETIME, '{endDate} 05:59:59', 120)
+                        AND SAP_FactoryDescr LIKE '%PVC%'
+                            """
+
+                partNoItems = self.scada_db.select_sql_dict(sql)
+                partNoItems_list = [value['PartNo'] for value in partNoItems]
+                productItems = [value['ProductItem'] for value in partNoItems]
+
+                for index, partNo in enumerate(partNoItems_list):
+                    if 'ipqc' in device_name:
+                        sql_ipqc = f"""
+                            SELECT PartNo FROM {table_name}
+                            WHERE PartNo = '{partNo}'
+                        """
+                        if not self.scada_db.select_sql_dict(sql_ipqc):
+                            missingIPQCStandardValue.append([partNo, productItems[index]])
+
+                        if len(missingIPQCStandardValue) > 0:
+                            status = 'E14'
+                            msg = f"Missing {device_name}: {','.join(missingIPQCStandardValue)}"
+
+                    if 'scada' in device_name:
+                        sql_scada = f"""
+                            SELECT PartNo FROM {table_name}
+                            WHERE PartNo = '{partNo}'
+                        """
+                        if not self.scada_db.select_sql_dict(sql_scada):
+                            missingSCADAStandardValue.append([partNo, productItems[index]])
+
+                        if len(missingSCADAStandardValue) > 0:
+                            status = 'E15'
+                            msg = f"Missing {device_name}: {','.join(missingSCADAStandardValue)}"
+
+            elif 'RFC' in device_name:
+                sql = f"""
+                                select top 120 
+                                IIF(CHARINDEX('nbr',r.WorkCenterName)>0, 'nbr', 'pvc') as WorkCentertype, 
+                                r.WorkOrderId, r.id runId, r.LineName, r.Period,
+                                d.*, p.StorageLocation
+                                from [PMGMES].[dbo].[PMG_MES_WorkInProcessDetail] d (nolock) inner join [PMGMES].[dbo].[PMG_MES_WorkInProcess] p (nolock) on d.WorkInProcessId=p.id
+                                inner join [PMGMES].[dbo].[PMG_MES_RunCard] r (nolock) on p.RunCardId=r.id
+                                where d.PrintType='ticket'
+                                and (D.ErpSTATUS = 'E' ) and d.CreationTime='{startDate}' 
+                                order by D.IsERP desc, WorkCentertype, r.WorkOrderId, D.PrintDate desc
+                            """
+
+                results = self.mes_db.select_sql_dict(sql)
+                if results:
+                    status = 'E16'
+                    msg = f"RFC error: {'-'.join([[result['LotNo'], result['WorkOrderId']] for result in results])}"
 
         except Exception as e:
             print(e)

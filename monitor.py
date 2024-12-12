@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from database import vnedc_database, scada_database
+from database import vnedc_database, scada_database, mes_database
 from models import DeviceInfo
 from utils import Log
 
@@ -9,11 +9,13 @@ class Monitor(ABC):
     status = {}
     vnedc_db = None
     scada_db = None
+    mes_db = None
     MACHINE_MAPPING = {}
 
     def __init__(self):
         self.vnedc_db = vnedc_database()
         self.scada_db = scada_database()
+        self.mes_db = mes_database()
         self.status = self.get_status_define()
         self.MACHINE_MAPPING = self.get_machine_mapping()
 
