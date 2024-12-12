@@ -13,8 +13,8 @@ from factory.wecom import WecomMonitor
 # m = ScadaPLCMonitor()
 # m.monitor()
 
-m = MesDataStatusMonitor()
-m.monitor()
+# m = MesDataStatusMonitor()
+# m.monitor()
 
 # m = KeyDeviceMonitor()
 # m.monitor()

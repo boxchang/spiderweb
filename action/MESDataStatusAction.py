@@ -19,7 +19,7 @@ class MESDataStatusAction():
         msg = ""
         status = "S01"
 
-        startDate = datetime.today().date() - timedelta(days=1)
+        startDate = datetime.today().date() - timedelta(days=365)
         endDate = datetime.today().date()
 
         missingIPQCStandardValue = []
@@ -90,7 +90,7 @@ class MESDataStatusAction():
                         status = "E13"
                         msg = ', '.join(comment)
                         msg = f"{msg} not ready at peroid {current_hour}"
-            elif '_standard' in device_name:
+            elif '_STANDARD' in device_name:
                 if 'NBR' in device_name:
                     sql = f"""
                         SELECT DISTINCT PartNo, ProductItem
@@ -114,7 +114,7 @@ class MESDataStatusAction():
                 productItems = [value['ProductItem'] for value in partNoItems]
 
                 for index, partNo in enumerate(partNoItems_list):
-                    if 'ipqc' in device_name:
+                    if 'IPQC' in device_name:
                         sql_ipqc = f"""
                             SELECT PartNo FROM {table_name}
                             WHERE PartNo = '{partNo}'
@@ -123,10 +123,12 @@ class MESDataStatusAction():
                             missingIPQCStandardValue.append([partNo, productItems[index]])
 
                         if len(missingIPQCStandardValue) > 0:
-                            status = 'E14'
-                            msg = f"Missing {device_name}: {','.join(missingIPQCStandardValue)}"
+                            for item in missingIPQCStandardValue:
+                                status = 'E14'
+                                msg = f"{item[0]} ({item[1]}) Need to set IPQC standard values"
+                                return status, msg
 
-                    if 'scada' in device_name:
+                    if 'SCADA' in device_name:
                         sql_scada = f"""
                             SELECT PartNo FROM {table_name}
                             WHERE PartNo = '{partNo}'
@@ -135,8 +137,10 @@ class MESDataStatusAction():
                             missingSCADAStandardValue.append([partNo, productItems[index]])
 
                         if len(missingSCADAStandardValue) > 0:
-                            status = 'E15'
-                            msg = f"Missing {device_name}: {','.join(missingSCADAStandardValue)}"
+                            for item in missingSCADAStandardValue:
+                                status = 'E15'
+                                msg = f"{item[0]} ({item[1]}) Need to set SCADA standard values"
+                                return status, msg
 
             elif 'RFC' in device_name:
                 sql = f"""
