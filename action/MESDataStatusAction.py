@@ -142,24 +142,6 @@ class MESDataStatusAction():
                                 msg = f"{item[0]} ({item[1]}) Need to set SCADA standard values"
                                 return status, msg
 
-            elif 'RFC' in device_name:
-                sql = f"""
-                                select top 120 
-                                IIF(CHARINDEX('nbr',r.WorkCenterName)>0, 'nbr', 'pvc') as WorkCentertype, 
-                                r.WorkOrderId, r.id runId, r.LineName, r.Period,
-                                d.*, p.StorageLocation
-                                from [PMGMES].[dbo].[PMG_MES_WorkInProcessDetail] d (nolock) inner join [PMGMES].[dbo].[PMG_MES_WorkInProcess] p (nolock) on d.WorkInProcessId=p.id
-                                inner join [PMGMES].[dbo].[PMG_MES_RunCard] r (nolock) on p.RunCardId=r.id
-                                where d.PrintType='ticket'
-                                and (D.ErpSTATUS = 'E' ) and d.CreationTime='{startDate}' 
-                                order by D.IsERP desc, WorkCentertype, r.WorkOrderId, D.PrintDate desc
-                            """
-
-                results = self.mes_db.select_sql_dict(sql)
-                if results:
-                    status = 'E16'
-                    msg = f"RFC error: {'-'.join([[result['LotNo'], result['WorkOrderId']] for result in results])}"
-
         except Exception as e:
             print(e)
             status = "E99"
