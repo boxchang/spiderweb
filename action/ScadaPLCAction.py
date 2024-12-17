@@ -29,7 +29,7 @@ class ScadaPLCAction():
                 sql = f"""
                             SELECT max(CreationTime) as last_time
                             FROM [PMG_DEVICE].[dbo].[PVC_MACHINE_DATA]
-                            where MachineName = '{device_name}'
+                            where MachineName = '{device_name}' AND FT2 is not null
                         """
             rows = self.scada_db.select_sql_dict(sql)
             given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
