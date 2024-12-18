@@ -19,48 +19,18 @@ class CountingDeviceAction():
         status = "S01"
         speed = 220
         device_name = device.device_name
-        today = '2024-12-18'
-        machine_name = self.MACHINE_MAPPING[device_name]
+        today = datetime.today().strftime('%Y-%m-%d')
         wo_sql = f"""
-            WITH Machine AS (
-                SELECT *
-                FROM [PMGMES].[dbo].[PMG_DML_DataModelList] dl
-                WHERE dl.DataModelTypeId = 'DMT000003'
-            ),
-            WorkOrderCheck AS (
-                SELECT 
-                    dml.Id AS MachineID,
-                    dml.Name AS MachineName,
-                    wo.Id AS WorkOrderId,
-                    woi.LineId AS LineId,
-                    CASE 
-                        WHEN COUNT(wo.Id) OVER (PARTITION BY dml.Name) > 0 THEN 1 
-                        ELSE 0 
-                    END AS WorkOrderMode
-                FROM 
-                    Machine dml
-                LEFT JOIN 
-                    [PMGMES].[dbo].[PMG_MES_WorkOrder] wo 
-                    ON dml.Id = wo.MachineId
-                    AND wo.StartDate IS NOT NULL
-                    AND wo.StartDate BETWEEN CONVERT(DATETIME, '{today} 05:30:00', 120) 
-                                    AND CONVERT(DATETIME, DATEADD(SECOND, -1, CONVERT(DATETIME, DATEADD(DAY, 1, '{today}') + ' 05:30:00', 120)), 120)
-                LEFT JOIN 
-                    [PMGMES].[dbo].[PMG_MES_WorkOrderInfo] woi 
-                    ON wo.Id = woi.WorkOrderId
-                WHERE 
-                    dml.Name LIKE '%{machine_name}%'
-            )
-            SELECT 
-                distinct(WorkOrderId)
-            FROM 
-                WorkOrderCheck
+            SELECT mach_id
+            FROM [VNEDC].[dbo].[collection_daily_prod_info_head]
+            where data_date = '{today}'
         """
+        condition = self.vnedc_db.select_sql_dict(wo_sql)
+        # mach_list = sorted(list(set([f"NBR_CountingMachine_{int(mach['mach_id'][-2:])}" if (mach['mach_id'][-2:]) is not None else print(mach['mach_id']) for mach in condition])))
+        mach_list = sorted(list(set([f"NBR_CountingMachine_{int(re.sub('[^0-9]', '',  str(mach['mach_id'])))}" for mach in condition if (mach['mach_id'][-2:])])))
+        match_name = any(device_name[:-1] == mach for mach in mach_list)
 
-        condition = self.scada_db.select_sql_dict(wo_sql)
-        match_condition = True if len(condition) > 1 or condition[0]['WorkOrderId'] is not None else False
-
-        if match_condition == True:
+        if match_name == True:
             sql = f"""
                SELECT last_time, Speed
                    FROM (
@@ -107,7 +77,7 @@ class CountingDeviceAction():
                                 status = "E01"
                                 msg = f"{device_name} speed is > 220"
                 else:
-                    status = "S01"
+                    status = "E03"
                     msg = f"No any data"
             except Exception as e:
                 print(e)
@@ -123,99 +93,60 @@ class CountingDeviceAction():
     def NoIPQC(self, device):
         msg = "Success"
         status = "S01"  # Default to "Success"
-        device_name = device.device_name #NBR_CountingMachine_1B
-        machine_name = self.MACHINE_MAPPING[device_name] #VN_GD_NBR1_L03
+        # VN_GD_NBR1_L03
 
-        today = datetime.today().strftime('%Y-%m-%d')
-        wo_sql = f"""
-            WITH Machine AS (
-                SELECT *
-                FROM [PMGMES].[dbo].[PMG_DML_DataModelList] dl
-                WHERE dl.DataModelTypeId = 'DMT000003'
-            ),
-            WorkOrderCheck AS (
-                SELECT 
-                    dml.Id AS MachineID,
-                    dml.Name AS MachineName,
-                    wo.Id AS WorkOrderId,
-                    woi.LineId AS LineId,
-                    CASE 
-                        WHEN COUNT(wo.Id) OVER (PARTITION BY dml.Name) > 0 THEN 1 
-                        ELSE 0 
-                    END AS WorkOrderMode
-                FROM 
-                    Machine dml
-                LEFT JOIN 
-                    [PMGMES].[dbo].[PMG_MES_WorkOrder] wo 
-                    ON dml.Id = wo.MachineId
-                    AND wo.StartDate IS NOT NULL
-                    AND wo.StartDate BETWEEN CONVERT(DATETIME, '{today} 05:30:00', 120) 
-                                    AND CONVERT(DATETIME, DATEADD(SECOND, -1, CONVERT(DATETIME, DATEADD(DAY, 1, '{today}') + ' 05:30:00', 120)), 120)
-                LEFT JOIN 
-                    [PMGMES].[dbo].[PMG_MES_WorkOrderInfo] woi 
-                    ON wo.Id = woi.WorkOrderId
-                WHERE 
-                    dml.Name LIKE '%{machine_name}%'
-            )
-            SELECT 
-                distinct(WorkOrderId)
-            FROM 
-                WorkOrderCheck
-        """
+        device_name = device.device_name
 
-        condition = self.scada_db.select_sql_dict(wo_sql)
-        match_condition = True if len(condition) > 1 or condition[0]['WorkOrderId'] is not None else False
-        if match_condition == True:
-            try:
-                sql_counting = f"""
-                    SELECT SUM(Qty2) as qty
-                    FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] cd
-                    JOIN [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] cm on cd.MachineName = cm.COUNTING_MACHINE
-                    WHERE cm.MES_MACHINE = '{machine_name}'
-                      AND CreationTime BETWEEN 
-                            CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
-                      AND 
-                            CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:59:59') AS DATETIME)
-                      AND Qty2 IS NOT NULL;
-                    """
-                counting_data = self.scada_db.select_sql_dict(sql_counting)
+        machine_name = self.MACHINE_MAPPING[device_name]
 
-                sql_check_ipqc = f"""
-                    WITH CheckData AS (
-                        -- Lọc dữ liệu thực tế từ bảng dựa trên giờ trước đó
-                        SELECT 
-                            COUNT(*) AS ValidDataCount
-                        FROM [PMGMES].[dbo].[PMG_MES_IPQCInspectingRecord] ipqc
-                        JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r
-                            ON ipqc.RunCardId = r.Id
-                        WHERE r.InspectionDate = CONVERT(date, GETDATE())  -- Chỉ kiểm tra ngày hiện tại
-                            AND Period = DATEPART(HOUR, DATEADD(hour, -2, GETDATE()))  -- Kiểm tra giờ trước đó
-                            AND OptionName = 'Weight'
-                            AND MachineName = '{machine_name}'
-                            --AND LineName = 'B2'
-                    )
-                    -- So sánh dữ liệu thực tế với Period của giờ trước đó
+        # Return True if has QC check gloves in every hour
+        try:
+            sql_counting = f"""
+                SELECT SUM(Qty2) as qty
+                FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] cd
+				JOIN [PMG_DEVICE].[dbo].[COUNTING_DATA_MACHINE] cm on cd.MachineName = cm.COUNTING_MACHINE
+                WHERE cm.MES_MACHINE = '{machine_name}'
+                  AND CreationTime BETWEEN 
+                        CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:00:00') AS DATETIME)
+                  AND 
+                        CAST(FORMAT(DATEADD(HOUR, -2, GETDATE()), 'yyyy-MM-dd HH:59:59') AS DATETIME)
+                  AND Qty2 IS NOT NULL;
+                """
+            counting_data = self.scada_db.select_sql_dict(sql_counting)
+
+            sql_check_ipqc = f"""
+                WITH CheckData AS (
+                    -- Lọc dữ liệu thực tế từ bảng dựa trên giờ trước đó
                     SELECT 
-                        DATEPART(HOUR, DATEADD(hour, -2, GETDATE())) AS ExpectedPeriod,
-                        CASE 
-                            WHEN cd.ValidDataCount IS NULL OR cd.ValidDataCount = 0 THEN 'Missing data'  -- Nếu không có dữ liệu
-                            ELSE 'Data exists'  -- Nếu có dữ liệu
-                        END AS Status
-                    FROM CheckData cd;
-                    """
-                qc = self.scada_db.select_sql_dict(sql_check_ipqc)
-                temp = ""
-                # current_hour = int(datetime.now().hour - timedelta(hours=1))
-                if str(qc[0]["Status"]) == "Missing data":
-                    if counting_data[0]["qty"] != None:
-                        if int(counting_data[0]["qty"]) > 1000:
-                            status = "E11"
-                            Period = qc[0]["ExpectedPeriod"]
-                            msg = f"Period {Period} No IPQC but have Machine online"
-            except Exception as e:
-                status = "E99"
-                msg = f"Error while checking IPQC for {device.device_name}: {str(e)}"
-        else:
-            status = 'S01'
-            msg = 'Machine stopped'
+                        COUNT(*) AS ValidDataCount
+                    FROM [PMGMES].[dbo].[PMG_MES_IPQCInspectingRecord] ipqc
+                    JOIN [PMGMES].[dbo].[PMG_MES_RunCard] r
+                        ON ipqc.RunCardId = r.Id
+                    WHERE r.InspectionDate = CONVERT(date, GETDATE())  -- Chỉ kiểm tra ngày hiện tại
+                        AND Period = DATEPART(HOUR, DATEADD(hour, -2, GETDATE()))  -- Kiểm tra giờ trước đó
+                        AND OptionName = 'Weight'
+                        AND MachineName = '{machine_name}'
+                        --AND LineName = 'B2'
+                )
+                -- So sánh dữ liệu thực tế với Period của giờ trước đó
+                SELECT 
+                    DATEPART(HOUR, DATEADD(hour, -2, GETDATE())) AS ExpectedPeriod,
+                    CASE 
+                        WHEN cd.ValidDataCount IS NULL OR cd.ValidDataCount = 0 THEN 'Missing data'  -- Nếu không có dữ liệu
+                        ELSE 'Data exists'  -- Nếu có dữ liệu
+                    END AS Status
+                FROM CheckData cd;
+                """
+            qc = self.scada_db.select_sql_dict(sql_check_ipqc)
+            temp = ""
+            # current_hour = int(datetime.now().hour - timedelta(hours=1))
+            if str(qc[0]["Status"]) == "Missing data":
+                if counting_data[0]["qty"] != None:
+                    if int(counting_data[0]["qty"]) > 1000:
+                        status = "E11"
+                        Period = qc[0]["ExpectedPeriod"]
+                        msg = f"Period {Period} No IPQC but have Machine online"
+        except Exception as e:
+            status = "E99"
+            msg = f"Error while checking IPQC for {device.device_name}: {str(e)}"
         return status, msg
