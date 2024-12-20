@@ -26,67 +26,59 @@ class CountingDeviceAction():
             where data_date = '{today}'
         """
         condition = self.vnedc_db.select_sql_dict(wo_sql)
-        # mach_list = sorted(list(set([f"NBR_CountingMachine_{int(mach['mach_id'][-2:])}" if (mach['mach_id'][-2:]) is not None else print(mach['mach_id']) for mach in condition])))
-        mach_list = sorted(list(set([f"NBR_CountingMachine_{int(re.sub('[^0-9]', '',  str(mach['mach_id'])))}" for mach in condition if (mach['mach_id'][-2:])])))
-        match_name = any(device_name[:-1] == mach for mach in mach_list)
 
-        if match_name == True:
-            sql = f"""
-               SELECT last_time, Speed
-                   FROM (
-                       SELECT TOP 1 CreationTime as last_time, Speed
-                       FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
-                       WHERE MachineName = '{device_name}'
-                       ORDER BY CreationTime DESC
-                   ) AS LatestRow
-                   UNION ALL
-                   SELECT * 
-                   FROM (
-                       SELECT TOP 1 CreationTime as last_time, Speed
-                       FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
-                       WHERE MachineName = '{device_name}'
-                         AND Qty2 IS NOT NULL
-                       ORDER BY CreationTime DESC
-                   ) AS LatestNonNullRow;
-                       """
-            try:
+        sql = f"""
+           SELECT last_time, Speed
+               FROM (
+                   SELECT TOP 1 CreationTime as last_time, Speed
+                   FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
+                   WHERE MachineName = '{device_name}'
+                   ORDER BY CreationTime DESC
+               ) AS LatestRow
+               UNION ALL
+               SELECT * 
+               FROM (
+                   SELECT TOP 1 CreationTime as last_time, Speed
+                   FROM [PMG_DEVICE].[dbo].[COUNTING_DATA]
+                   WHERE MachineName = '{device_name}'
+                     AND Qty2 IS NOT NULL
+                   ORDER BY CreationTime DESC
+               ) AS LatestNonNullRow;
+                   """
+        try:
 
-                rows = self.scada_db.select_sql_dict(sql)
+            rows = self.scada_db.select_sql_dict(sql)
 
-                if len(rows) == 2:
-                    given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                    current_time = datetime.now()
-                    time_difference = current_time - given_time
-                    if time_difference > timedelta(minutes=30):
-                        status = "E01"
-                        given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-                        msg = f"The last time is {given_time} already over 30 mins"
-                    else:
-                        last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                        last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                        if last_time - last_null > timedelta(minutes=30):
-                            status = "E01"
-                            last_null = last_null.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-                            msg = f"NULL from {last_null}"
-                        else:
-                            if rows[0]['Speed'] is None:
-                                # status = "E10"
-                                # msg = f"{device_name} speed is None"
-                                pass
-                            elif int(rows[0]['Speed']) > speed:
-                                status = "E01"
-                                msg = f"{device_name} speed is > 220"
+            if len(rows) == 2:
+                given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                current_time = datetime.now()
+                time_difference = current_time - given_time
+                if time_difference > timedelta(minutes=30):
+                    status = "E01"
+                    given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                    msg = f"The last time is {given_time} already over 30 mins"
                 else:
-                    status = "E03"
-                    msg = f"No any data"
-            except Exception as e:
-                print(e)
-                status = "E99"
-                msg = e
-
-        else:
-            status = 'S01'
-            msg = 'Machine stop'
+                    last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                    last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                    if last_time - last_null > timedelta(minutes=30):
+                        status = "E01"
+                        last_null = last_null.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                        msg = f"NULL from {last_null}"
+                    else:
+                        if rows[0]['Speed'] is None:
+                            # status = "E10"
+                            # msg = f"{device_name} speed is None"
+                            pass
+                        elif int(rows[0]['Speed']) > speed:
+                            status = "E01"
+                            msg = f"{device_name} speed is > 220"
+            else:
+                status = "E03"
+                msg = f"No any data"
+        except Exception as e:
+            print(e)
+            status = "E99"
+            msg = e
 
         return status, msg
 
