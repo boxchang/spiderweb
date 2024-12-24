@@ -183,16 +183,21 @@ class CountingDeviceAction():
         status = "S01"  # Default to "Success"
         device_name = device.device_name
 
-        sql = f"""
-          SELECT *
-          FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device_name}'
-          and CreationTime between DATEADD(HOUR, -1, GETDATE()) and GETDATE()
-        """
-        raws = self.scada_db.select_sql_dict(sql)
+        try:
+            sql = f"""
+              SELECT *
+              FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device_name}'
+              and CreationTime between DATEADD(HOUR, -1, GETDATE()) and GETDATE()
+            """
+            raws = self.scada_db.select_sql_dict(sql)
 
-        for data in raws:
-            if float(data['ModelLostQty']) < 0:
-                status = "E16"
-                msg = f"ModelLostQty is not correct, please check"
-                break
+            for data in raws:
+                if data['ModelLostQty'] is not None and float(data['ModelLostQty']) < 0:
+                    status = "E16"
+                    msg = f"ModelLostQty is not correct, please check"
+                    break
+        except Exception as e:
+            status = "E99"
+            msg = f"Error while ModelLostQtyCheck for {device.device_name}: {str(e)}"
+
         return status, msg
