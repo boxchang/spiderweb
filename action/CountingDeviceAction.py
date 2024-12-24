@@ -177,3 +177,22 @@ class CountingDeviceAction():
             status = 'S01'
             msg = 'Machine stopped'
         return status, msg
+
+    def ModelLostQtyCheck(self, device):
+        msg = "Success"
+        status = "S01"  # Default to "Success"
+        device_name = device.device_name
+
+        sql = f"""
+          SELECT *
+          FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device_name}'
+          and CreationTime between DATEADD(HOUR, -1, GETDATE()) and GETDATE()
+        """
+        raws = self.scada_db.select_sql_dict(sql)
+
+        for data in raws:
+            if float(data['ModelLostQty']) < 0:
+                status = "E16"
+                msg = f"ModelLostQty is not correct, please check"
+                break
+        return status, msg

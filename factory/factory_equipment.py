@@ -20,6 +20,11 @@ class CountingDeviceMonitor(Monitor):
             #     action = CountingDeviceAction(self).NoIPQC
             #     status, msg = self.execute(action, device)
             #     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-CountingDeviceMonitor-NoIPQC: {device.device_type} - {device.device_name} - {self.status[status]}")
+            if status.startswith('S'):
+                action = CountingDeviceAction(self).ModelLostQtyCheck
+                status, msg = self.execute(action, device)
+                print(
+                    f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}-ModelLostQtyCheck: {device.device_type} - {device.device_name} - {self.status[status]}")
 
     def stop(self):
         print(f"Stopping Factory Equipment Monitor: {device.device_type} - {device.device_name}")
