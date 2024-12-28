@@ -192,7 +192,7 @@ class CountingDeviceAction():
             raws = self.scada_db.select_sql_dict(sql)
 
             for data in raws:
-                if data['ModelLostQty'] is not None and float(data['ModelLostQty']) < 0:
+                if data['ModelLostQty'] is not None and float(data['Qty2']) > 0 and float(data['ModelLostQty']) < 0:
                     status = "E16"
                     msg = f"ModelLostQty is not correct, please check"
                     break
