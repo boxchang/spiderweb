@@ -184,10 +184,12 @@ class CountingDeviceAction():
         device_name = device.device_name
 
         try:
+            # 目前只有NBR看板有顯示缺模率
             sql = f"""
               SELECT *
               FROM [PMG_DEVICE].[dbo].[COUNTING_DATA] where MachineName = '{device_name}'
               and CreationTime between DATEADD(MINUTE, -10, GETDATE()) and GETDATE()
+              and MachineName like '%NBR%'
             """
             raws = self.scada_db.select_sql_dict(sql)
 
