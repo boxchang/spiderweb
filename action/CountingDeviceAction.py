@@ -58,9 +58,10 @@ class CountingDeviceAction():
                     given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
                     msg = f"The last time is {given_time} already over 30 mins"
                 else:
-                    last_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                    last_null = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-                    if last_time - last_null > timedelta(minutes=30):
+                    last_null = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                    last_time = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                    last_value = rows[1]['Speed']
+                    if last_value > 0 and last_time - last_null > timedelta(minutes=30):  # 最後有值的機速大於0，且Null值的時間差超過30分鐘才判斷異常
                         status = "E01"
                         last_null = last_null.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
                         msg = f"NULL from {last_null}"
