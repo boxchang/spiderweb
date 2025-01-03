@@ -71,7 +71,7 @@ class CountingDeviceAction():
                             # msg = f"{device_name} speed is None"
                             pass
                         elif int(rows[0]['Speed']) > speed:
-                            status = "E01"
+                            status = "E09"
                             msg = f"{device_name} speed is > 220"
             else:
                 status = "E03"
