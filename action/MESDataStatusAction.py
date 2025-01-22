@@ -97,7 +97,7 @@ class MESDataStatusAction():
                         FROM [PMGMES].[dbo].[PMG_MES_WorkOrder]
                         WHERE CreationTime BETWEEN CONVERT(DATETIME, '{startDate} 06:00:00', 120)
                         AND CONVERT(DATETIME, '{endDate} 05:59:59', 120)
-                        AND SAP_FactoryDescr LIKE '%NBR%'
+                        AND SAP_FactoryDescr LIKE '%NBR%' AND Status=1
                             """
 
                 elif 'PVC' in device_name:
@@ -106,7 +106,7 @@ class MESDataStatusAction():
                         FROM [PMGMES].[dbo].[PMG_MES_WorkOrder]
                         WHERE CreationTime BETWEEN CONVERT(DATETIME, '{startDate} 06:00:00', 120)
                         AND CONVERT(DATETIME, '{endDate} 05:59:59', 120)
-                        AND SAP_FactoryDescr LIKE '%PVC%'
+                        AND SAP_FactoryDescr LIKE '%PVC%' AND Status=1
                             """
 
                 partNoItems = self.scada_db.select_sql_dict(sql)
