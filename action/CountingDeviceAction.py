@@ -51,9 +51,12 @@ class CountingDeviceAction():
 
             if len(rows) == 2:
                 given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                given_time2 = datetime.strptime(rows[1]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
                 current_time = datetime.now()
                 time_difference = current_time - given_time
-                if time_difference > timedelta(minutes=30):
+                time_difference2 = current_time - given_time2
+
+                if time_difference > timedelta(minutes=30) or time_difference2 > timedelta(minutes=30):
                     status = "E01"
                     given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
                     msg = f"The last time is {given_time} already over 30 mins"
