@@ -48,7 +48,7 @@ class WecomMonitor(Monitor):
                 FROM [VNEDC].[dbo].[spiderweb_monitor_device_log] smdlog
                 JOIN [VNEDC].[dbo].[spiderweb_monitor_device_list] smdlist
                 on smdlog.device_id = smdlist.id and smdlist.device_name = smdlist.device_name
-                where smdlog.recover_msg is NULL  
+                where smdlog.recover_msg is NULL and (GETDATE() > CONVERT(DATETIME, stop_before, 103) or stop_before ='')
 				group by smdlog.func_name, smdlog.comment, smdlist.device_name,
                 smdlog.status_code_id , smdlist.status_id , smdlog.notice_flag, smdlog.recover_msg             
                 """
