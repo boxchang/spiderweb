@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 import re
 
+from factory.wecom import WecomMonitor
+
+
 class CountingDeviceAction():
     vnedc_db = None
     scada_db = None
@@ -191,6 +194,7 @@ class CountingDeviceAction():
         msg = "Success"
         status = "S01"  # Default to "Success"
         device_name = device.device_name
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
             # 目前只有NBR看板有顯示缺模率
@@ -205,7 +209,9 @@ class CountingDeviceAction():
             for data in raws:
                 if data['ModelLostQty'] is not None and float(data['Qty2']) > 0 and float(data['ModelLostQty']) < 0:
                     status = "E16"
-                    msg = f"ModelLostQty is not correct, please check"
+                    msg = f"ModelLostQty不正確請檢查"
+
+                    WecomMonitor().send_modellost_wecom(f"{current_time}    機台{device_name}   {msg}")
                     break
         except Exception as e:
             status = "E99"

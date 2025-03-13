@@ -34,6 +34,26 @@ class WecomMonitor(Monitor):
         r = requests.post(url, headers=headers, json=data)
         return r.json()
 
+    def send_modellost_wecom(self, msg):
+        print('Send message')
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        wecom_file = os.path.join(path, "modellost_wecom_key.config")
+        url = ''  # Add Wecom GD_MES group key
+        if os.path.exists(wecom_file):
+            with open(wecom_file, 'r') as file:
+                url = file.read().strip()
+        headers = {'Content-Type': 'application/json; charset=utf-8'}
+        data = {
+            "msgtype": "markdown",
+            "markdown": {
+                "content": '',
+                # "mentioned_list": ["@all"],
+            }
+        }
+        data["markdown"]["content"] = msg
+        r = requests.post(url, headers=headers, json=data)
+        return r.json()
+
     def send_msg(self, vnedc_db):
         comment = ""
         msg = ""
