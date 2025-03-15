@@ -209,9 +209,11 @@ class CountingDeviceAction():
             for data in raws:
                 if data['ModelLostQty'] is not None and float(data['Qty2']) > 0 and float(data['ModelLostQty']) < 0:
                     status = "E16"
-                    msg = f"ModelLostQty ({data['Qty2']})不正確請檢查"
+                    msg = f"ModelLostQty ({data['ModelLostQty']})不正確請檢查"
 
-                    WecomMonitor().send_modellost_wecom(f"{current_time} 機台{device_name} - {msg}")
+                    if 'NBR_CountingMachine_5' in device_name:
+                        WecomMonitor().send_modellost_wecom(f"{current_time} 機台{device_name} - {msg}")
+
                     break
         except Exception as e:
             status = "E99"
