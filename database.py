@@ -42,6 +42,43 @@ class vnedc_database:
 
         return None
 
+class mes_olap_database:
+    def select_sql(self, sql):
+        self.conn = self.create_mes_olap_connection()
+        self.cur = self.conn.cursor()
+        self.cur.execute(sql)
+        return self.cur.fetchall()
+
+    def select_sql_dict(self, sql):
+        self.conn = self.create_mes_olap_connection()
+        self.cur = self.conn.cursor()
+        self.cur.execute(sql)
+
+        desc = self.cur.description
+        column_names = [col[0] for col in desc]
+        data = [dict(zip(column_names, row))
+                for row in self.cur.fetchall()]
+        return data
+
+    def execute_sql(self, sql):
+        self.conn = self.create_mes_olap_connection()
+        self.cur = self.conn.cursor()
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    def create_mes_olap_connection(self):
+        try:
+            conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={server}; database={database}; \
+                                   trusted_connection=no;UID={uid};PWD={pwd}".format(server="192.168.11.31",
+                                                                                     database="MES_OLAP",
+                                                                                     uid="vnedc",
+                                                                                     pwd="vnedc#2024"))
+            return conn
+        except Error as e:
+            print(e)
+
+        return None
+
 class scada_database:
     def select_sql(self, sql):
         self.conn = self.create_sgada_connection()

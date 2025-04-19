@@ -4,13 +4,50 @@ class MESDataStatusAction():
     vnedc_db = None
     scada_db = None
     mes_db = None
+    mes_olap_db = None
     status = None
 
     def __init__(self, obj):
         self.vnedc_db = obj.vnedc_db
         self.scada_db = obj.scada_db
         self.mes_db = obj.mes_db
+        self.mes_olap_db = obj.mes_olap_db
         self.status = obj.status
+
+    def CheckCustomerCode(self, device):
+        status = "S01"
+        msg = ""
+
+        invalid_codes = []
+
+        sql1 = f"""
+                  SELECT DISTINCT CustomerCode
+                  FROM [PMGMES].[dbo].[PMG_MES_WorkOrder] 
+                  WHERE CustomerCode <> ''
+                """
+
+        sql2 = f"""
+                  SELECT [CustomerCode] 
+                  FROM [MES_OLAP].[dbo].[sap_customer_define]
+                """
+
+        customer = self.mes_db.select_sql_dict(sql1)
+        customer_define = self.mes_olap_db.select_sql_dict(sql2)
+
+        # customer.append({'CustomerCode': '12345'})
+
+        for code in customer:
+            if code not in customer_define:
+                invalid_codes.append(code)
+                status = "E17"
+                msg = "Customer Code not existed"
+            else:
+                status = "S01"
+                msg = ""
+
+        print(invalid_codes)
+
+        return status, msg
 
     # Check if there is no data for a long time
     def CheckDataStatus(self, device):
