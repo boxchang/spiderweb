@@ -167,7 +167,7 @@ class MESDataStatusAction():
 
                 if len(invalid_codes) > 0:
                     status = "E17"
-                    customer_code = ', '.join(invalid_codes)
+                    customer_code = ','.join(str(item['CustomerCode']) for item in invalid_codes)
                     msg = f"{customer_code} Customer Code not existed"
                 else:
                     status = "S01"
