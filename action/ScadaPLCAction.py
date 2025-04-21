@@ -23,7 +23,7 @@ class ScadaPLCAction():
                         SELECT distinct Name
                           FROM [PMGMES].[dbo].[PMG_MES_WorkOrder] w
                           JOIN [PMGMES].[dbo].[PMG_DML_DataModelList] dl on w.MachineId = dl.id
-                          Where w.StartDate > CONVERT(DATETIME, '{today} 06:00:00', 120)
+                          Where w.StartDate > CONVERT(DATETIME, '{today} 05:30:00', 120)
                         """
             rows = self.scada_db.select_sql_dict(sql)
             working_list = [item['Name'] for item in rows]
