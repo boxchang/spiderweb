@@ -19,27 +19,38 @@ class ScadaPLCAction():
         status = "S01"
 
         try:
-            if 'NBR' in device_name:
-                sql = f"""
-                            SELECT CONVERT(varchar(30), max(datetime), 121) AS last_time
-                            FROM {table_name}
-                        """
-
-            elif 'PVC' in device_name:
-                sql = f"""
-                            SELECT max(CreationTime) as last_time
-                            FROM [PMG_DEVICE].[dbo].[PVC_MACHINE_DATA]
-                            where MachineName = '{device_name}' AND FT2 is not null
+            sql = f"""
+                        SELECT distinct Name
+                          FROM [PMGMES].[dbo].[PMG_MES_WorkOrder] w
+                          JOIN [PMGMES].[dbo].[PMG_DML_DataModelList] dl on w.MachineId = dl.id
+                          Where w.StartDate > CONVERT(DATETIME, '{today} 06:00:00', 120)
                         """
             rows = self.scada_db.select_sql_dict(sql)
-            given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
-            current_time = datetime.now()
-            time_difference = current_time - given_time
+            working_list = [item['Name'] for item in rows]
 
-            if time_difference > timedelta(minutes=30):
-                status = "E01"
-                given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-                msg = f"The last time is {given_time} already over 30 mins"
+            if device_name in working_list:
+
+                if 'NBR' in device_name:
+                    sql = f"""
+                                SELECT CONVERT(varchar(30), max(datetime), 121) AS last_time
+                                FROM {table_name}
+                            """
+
+                elif 'PVC' in device_name:
+                    sql = f"""
+                                SELECT max(CreationTime) as last_time
+                                FROM [PMG_DEVICE].[dbo].[PVC_MACHINE_DATA]
+                                where MachineName = '{device_name}' AND FT2 is not null
+                            """
+                rows = self.scada_db.select_sql_dict(sql)
+                given_time = datetime.strptime(rows[0]['last_time'][:-1], '%Y-%m-%d %H:%M:%S.%f')
+                current_time = datetime.now()
+                time_difference = current_time - given_time
+
+                if time_difference > timedelta(minutes=30):
+                    status = "E01"
+                    given_time = given_time.replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+                    msg = f"The last time is {given_time} already over 30 mins"
 
         except Exception as e:
             print(e)
