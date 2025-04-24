@@ -18,6 +18,8 @@ class ScadaPLCAction():
         msg = ""
         status = "S01"
 
+        today = datetime.today().strftime('%Y%m%d')
+
         try:
             sql = f"""
                         SELECT distinct Name
