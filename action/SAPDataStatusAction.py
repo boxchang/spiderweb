@@ -32,7 +32,7 @@ class SAPDataStatusAction():
 
                 if len(rows) != 0:
                     status = "E08"
-                    msg = rows[0]['ErpMESSAGE']
+                    msg = f"{rows[0]['WorkOrderId']} - {rows[0]['ErpMESSAGE']}"
 
             # 判斷二級品資料上傳ERP失敗
             elif device_name == 'FAULTY_DETAIL':
