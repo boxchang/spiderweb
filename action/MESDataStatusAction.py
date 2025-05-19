@@ -75,7 +75,7 @@ class MESDataStatusAction():
                     scrap AS (
                     SELECT r.*
                       FROM [PMGMES].[dbo].[PMG_MES_Scrap] s,  [PMGMES].[dbo].[PMG_MES_RunCard] r
-                      where s.CreationTime between CONVERT(DATETIME, '{today} 08:00:00', 120) and CONVERT(DATETIME, '{today} 12:59:59', 120)
+                      where s.CreationTime between CONVERT(DATETIME, '{today} 10:30:00', 120) and CONVERT(DATETIME, '{today} 12:59:59', 120)
                       and s.RunCardId = r.Id and s.ActualQty > 300
                     
                     )
